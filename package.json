@@ -16,5 +16,11 @@
   "bugs": {
     "url": "https://github.com/joshuatso/personality-quiz/issues"
   },
-  "homepage": "https://github.com/joshuatso/personality-quiz#readme"
+  "homepage": "https://github.com/joshuatso/personality-quiz#readme",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "concurrently": "^5.2.0",
+    "express": "^4.17.1",
+    "mongoose": "^5.9.24"
+  }
 }
