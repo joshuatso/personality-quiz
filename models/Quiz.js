@@ -9,15 +9,14 @@ const quizSchema = new mongoose.Schema({
         question: {
             type: String
         },
-        choices: [{
-            choice: {
-                type: String
-            }
-        }]
+        choices: [{type: String}]
     }],
-    date: {
+    dateCreated: {
         type: Date,
         default: Date.now()
+    },
+    creator: {
+        type: mongoose.Types.ObjectId
     }
 })
 
