@@ -5,6 +5,16 @@ const quizSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    questions: [{
+        question: {
+            type: String
+        },
+        choices: [{
+            choice: {
+                type: String
+            }
+        }]
+    }],
     date: {
         type: Date,
         default: Date.now()
