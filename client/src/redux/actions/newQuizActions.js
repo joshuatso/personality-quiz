@@ -1,4 +1,5 @@
 import {
+    CLEAR_QUIZ,
     SET_TITLE,
     ADD_QUESTION,
     REMOVE_QUESTION,
@@ -9,6 +10,12 @@ import {
     INCREMENT_CHOICE_INDEX,
     DECREMENT_CHOICE_INDEX
 } from "./types"
+
+export const clearQuiz = () => {
+    return {
+        type: CLEAR_QUIZ
+    }
+}
 
 export const setTitle = title => {
     return {

@@ -1,4 +1,5 @@
 import {
+    CLEAR_QUIZ,
     SET_TITLE,
     ADD_QUESTION,
     REMOVE_QUESTION,
@@ -30,6 +31,8 @@ function decrementIndex(list, index){
 
 export default function(state=initialState, action){
     switch (action.type){
+        case CLEAR_QUIZ:
+            return initialState
         case SET_TITLE:
             return {
                 ...state,

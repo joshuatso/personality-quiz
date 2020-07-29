@@ -1,3 +1,4 @@
+export const CLEAR_QUIZ = "CLEAR_QUIZ"
 export const SET_TITLE = "SET_TITLE"
 export const ADD_QUESTION = "ADD_QUESTION"
 export const REMOVE_QUESTION = "REMOVE_QUESTION"
