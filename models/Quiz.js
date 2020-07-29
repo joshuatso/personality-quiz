@@ -6,10 +6,24 @@ const quizSchema = new mongoose.Schema({
         required: true
     },
     questions: [{
-        question: {
-            type: String
+        id: {
+            type: mongoose.Types.ObjectId,
+            required: true
         },
-        choices: [{type: String}]
+        question: {
+            type: String,
+            required: true
+        },
+        choices: [{
+            id: {
+                type: mongoose.Types.ObjectId,
+                required: true
+            },
+            choice: { 
+                type: String, 
+                required: true 
+            }
+        }]
     }],
     dateCreated: {
         type: Date,

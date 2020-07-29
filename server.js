@@ -8,6 +8,7 @@ const mongoose = require("mongoose")
 // Routers
 const quizRouter = require("./routes/api/quizzes")
 const userRouter = require("./routes/api/users")
+const graphqlQuizRouter = require("./graphql/quizzes")
 
 // Create express app
 const app = express()
@@ -25,5 +26,7 @@ mongoose
 // Use routers
 app.use("/api/quizzes", quizRouter)
 app.use("/api/users", userRouter)
+
+app.use("/graphql/quizzes", graphqlQuizRouter)
 
 app.listen(process.env.PORT || 5000)
