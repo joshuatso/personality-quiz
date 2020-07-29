@@ -1,15 +1,20 @@
 import React, { useState, useEffect } from 'react'
 import axios from "axios"
 import {uuid} from "uuidv4"
+import { gql, useQuery } from "@apollo/client"
 
 export default function ShowQuizzes() {
     const [quizzes, setQuizzes] = useState([])
+    const { loading, error, data } = useQuery(gql`
+        {
+            quizzes {
+                title
+            }
+        }
+    `)
 
-    async function fetchQuizzes() {
-        axios
-            .get("/api/quizzes")
-            .then(res => {setQuizzes(res.data.map(quiz => quiz.title))})
-            .catch(e => console.log(e))
+    function fetchQuizzes() {
+        setQuizzes(data.quizzes.map(quiz => quiz.title))
     }
 
     return (

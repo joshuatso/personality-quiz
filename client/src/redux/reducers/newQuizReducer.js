@@ -51,7 +51,7 @@ export default function(state=initialState, action){
         case ADD_CHOICE:
             return {
                 ...state,
-                questions: state.questions.map(question => questions.id == action.payload.questionId ? {...question, choices: [...question.choices, addId(action.payload.choice)]} : question)
+                questions: state.questions.map(question => question.id == action.payload.questionId ? {...question, choices: [...question.choices, addId(action.payload.choice)]} : question)
             }
         case REMOVE_CHOICE:
             return {
