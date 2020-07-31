@@ -2,9 +2,9 @@ import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from
 import axios from "axios"
 import { uuid } from "uuidv4"
 import { useDispatch, useSelector } from "react-redux"
-import { setTitle, addQuestion, setQuestionQuestion, incrementQuestionIndex, decrementQuestionIndex } from "../redux/actions/newQuizActions"
+import { setTitle, addQuestion, setQuestionQuestion, incrementQuestionIndex, decrementQuestionIndex, removeQuestion } from "../redux/actions/newQuizActions"
 import { gql, useQuery } from "@apollo/client"
-import { AppBar, Toolbar, Button, ButtonBase, Typography, InputBase, TextField, IconButton, Grid, Paper, Drawer, Chip, Fab, Zoom } from "@material-ui/core"
+import { AppBar, Toolbar, Button, ButtonBase, Typography, InputBase, TextField, IconButton, Grid, Paper, Drawer, Chip, Fab, Zoom, Modal, Fade, Backdrop } from "@material-ui/core"
 import CssBaseline from '@material-ui/core/CssBaseline'
 import { fade, makeStyles, useTheme } from "@material-ui/core/styles"
 import EditIcon from "@material-ui/icons/Edit"
@@ -12,7 +12,7 @@ import MenuIcon from "@material-ui/icons/Menu"
 import AddIcon from "@material-ui/icons/Add"
 import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward"
 import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward"
-import DeleteForeverIcon from "@material-ui/icons/DeleteForever"
+import DeleteIcon from "@material-ui/icons/Delete"
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline"
 
 const useStyles = makeStyles((theme) => ({
@@ -129,6 +129,17 @@ const useStyles = makeStyles((theme) => ({
         "&:hover": {
             backgroundColor: theme.palette.info.dark
         }
+    },
+    modal: {
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center"
+    },
+    modalTypography: {
+        marginBottom: theme.spacing(2)
+    },
+    modalPaper: {
+        padding: theme.spacing(2)
     }
 }))
 
@@ -137,8 +148,12 @@ export default function ShowQuizzes() {
     const { title, questions } = useSelector(state => state.newQuiz)
     const classes = useStyles()
     const [quizzes, setQuizzes] = useState([])
-    const [openQuestionId, setopenQuestionId] = useState(null)
+    const [openQuestionId, setOpenQuestionId] = useState(null)
+    const [fabTimeoutId, setFabTimeoutId] = useState(null)
     const [showFab, setShowFab] = useState(false)
+    const [fabAnimation, setFabAnimation] = useState(true)
+    const [mouseOverFab, setMouseOverFab] = useState(false)
+    const [modalOpen, setModalOpen] = useState(false)
     const theme = useTheme()
     const { loading, error, data } = useQuery(gql`
         {
@@ -152,7 +167,7 @@ export default function ShowQuizzes() {
     const findQuestionIndexById = id => questions.findIndex(question => question.id == id)
 
     const transitionDuration = {
-        enter: theme.transitions.duration.enteringScreen,
+        enter: fabAnimation ? theme.transitions.duration.enteringScreen : 0,
         exit: theme.transitions.duration.complex
     }
 
@@ -160,30 +175,66 @@ export default function ShowQuizzes() {
         setQuizzes(data.quizzes.map(quiz => quiz.title))
     }
 
-    let closeFab
-
-    const setCloseFab = () => {
-        closeFab = setTimeout(() => {setShowFab(false)}, 2000)
+    function handleDeleteFab() {
+        const openQuestion = findQuestionById(openQuestionId)
+        if (openQuestion.question == "" && openQuestion.choices.length == 0) {
+            handleDeleteQuestion()
+        } else {
+            setModalOpen(true)
+        }
     }
 
-    const clearCloseFab = () => {
-        clearTimeout(closeFab)
+    function handleDeleteQuestion() {
+        if (questions.length == 1) {
+            setOpenQuestionId(null)
+        } else {
+            const openQuestionIndex = findQuestionIndexById(openQuestionId)
+            if (openQuestionIndex == 0) {
+                setOpenQuestionId(questions[1].id)
+            } else {
+                setOpenQuestionId(questions[openQuestionIndex-1].id)
+            }
+        }
+        dispatch(removeQuestion(openQuestionId))
     }
 
-    const handleEditQuestionMouseMove = useCallback(
+    const fabFunctions = (() => {
+        let closeFab
+        return {
+            setCloseFab: () => {
+                closeFab = setTimeout(() => {setShowFab(false)}, 2000)
+                setFabTimeoutId(closeFab)
+            },
+            clearCloseFab: () => {
+                clearTimeout(closeFab)
+                clearTimeout(fabTimeoutId)
+            }
+        }
+    })()
+
+    const handleShowFab = useCallback(
         () => {
-            clearCloseFab()
-            setShowFab(true)
-            setCloseFab()
-        }, [])
+            fabFunctions.clearCloseFab()
+            if (openQuestionId) {
+                setFabAnimation(true)
+                setShowFab(true)
+                if (!(mouseOverFab || modalOpen)) {
+                    fabFunctions.setCloseFab()
+                }
+            }
+        }, [openQuestionId, mouseOverFab, modalOpen])
 
     useEffect(() => {
-        console.log(showFab)
-    }, [showFab])
+        setFabAnimation(false)
+    }, [questions.length])
+
+    useEffect(() => {
+        handleShowFab()
+    }, [mouseOverFab, modalOpen])
 
     useLayoutEffect(() => {
         if (openQuestionId == "last") {
-            setopenQuestionId(questions[questions.length-1].id)
+            setOpenQuestionId(questions[questions.length-1].id)
         }
     }, [openQuestionId])
 
@@ -220,7 +271,7 @@ export default function ShowQuizzes() {
                 <div className={classes.questionListContainer}>
                     {questions.map(question => 
                         <Paper key={question.id} className={`${classes.questionPaper} ${question.id == openQuestionId ? classes.openQuestionPaper : null}`}>
-                            <ButtonBase className={classes.questionButton} onClick={() => {setopenQuestionId(question.id)}}>
+                            <ButtonBase className={classes.questionButton} onClick={() => {setOpenQuestionId(question.id)}}>
                                 <Typography noWrap variant="h6">
                                     {`Question ${findQuestionIndexById(question.id)+1}: ${question.question}`}
                                 </Typography>
@@ -229,13 +280,13 @@ export default function ShowQuizzes() {
                     }
                     <Button className={classes.addQuestionButton} onClick={() => {
                         dispatch(addQuestion({ question: "", choices: [] }))
-                        setopenQuestionId("last")
+                        setOpenQuestionId("last")
                     }}>
                         <AddIcon></AddIcon>
                     </Button>
                 </div>
             </Drawer>
-            <div className={classes.editQuestionContainer} onMouseMove={handleEditQuestionMouseMove}>
+            <div className={classes.editQuestionContainer} onMouseMove={handleShowFab}>
                 <Toolbar />
                 {openQuestionId && openQuestionId != "last" ? 
                     <>
@@ -254,23 +305,29 @@ export default function ShowQuizzes() {
                             <Grid container direction="column" spacing={1}>
                                 <Grid item>
                                     <Zoom in={showFab} timeout={transitionDuration}>
+                                        <div onMouseOver={() => setMouseOverFab(true)} onMouseLeave={() => setMouseOverFab(false)}> 
                                         <Fab size="medium" disabled={findQuestionIndexById(openQuestionId) == 0} className={classes.shiftFab} onClick={() => {dispatch(decrementQuestionIndex(openQuestionId))}}>
                                             <ArrowUpwardIcon></ArrowUpwardIcon>
                                         </Fab>
+                                        </div>
                                     </Zoom>
                                 </Grid>
                                 <Grid item>
                                     <Zoom in={showFab} timeout={transitionDuration}>
-                                        <Fab size="medium" disabled={findQuestionIndexById(openQuestionId) == questions.length-1} className={classes.shiftFab} onClick={() => {dispatch(incrementQuestionIndex(openQuestionId))}}>
+                                        <div onMouseOver={() => setMouseOverFab(true)} onMouseLeave={() => setMouseOverFab(false)}> 
+                                        <Fab size="medium" disabled={findQuestionIndexById(openQuestionId) == questions.length-1} className={classes.shiftFab} onClick={() => {dispatch(incrementQuestionIndex(openQuestionId))}} onMouseOver={() => {setMouseOverFab(true)}}>
                                             <ArrowDownwardIcon></ArrowDownwardIcon>
                                         </Fab>
+                                        </div>
                                     </Zoom>
                                 </Grid>
                                 <Grid item>
                                     <Zoom in={showFab} timeout={transitionDuration}>
-                                        <Fab size="medium" color="secondary">
-                                            <DeleteForeverIcon></DeleteForeverIcon>
+                                        <div onMouseOver={() => setMouseOverFab(true)} onMouseLeave={() => setMouseOverFab(false)}> 
+                                        <Fab size="medium" color="secondary" onClick={handleDeleteFab} onMouseOver={() => {setMouseOverFab(true)}}>
+                                            <DeleteIcon></DeleteIcon>
                                         </Fab>
+                                        </div>
                                     </Zoom>
                                 </Grid>
                             </Grid>
@@ -281,6 +338,32 @@ export default function ShowQuizzes() {
             {/* <Button onClick={() => {fetchQuizzes()}}>Show Quizzes</Button>
             {quizzes.map(quiz => <div key={uuid()}>{quiz}</div>)} */}
         </div>
+        <Modal
+            className={classes.modal}
+            open={modalOpen}
+            onClose={() => setModalOpen(false)}
+            closeAfterTransition
+            BackdropComponent={Backdrop}
+        >
+            <Fade in={modalOpen}>
+                <Paper className={classes.modalPaper}>
+                    <Typography variant="h6" className={classes.modalTypography}>
+                        Are you sure you want to delete this question?
+                    </Typography>
+                    <Grid container direction="row" spacing={2} justify="center">
+                        <Grid item>
+                            <Button variant="contained" color="default" onClick={() => setModalOpen(false)}>Cancel</Button>
+                        </Grid>
+                        <Grid item>
+                            <Button variant="contained" color="secondary" onClick={() => {
+                                handleDeleteQuestion()
+                                setModalOpen(false)
+                            }}>Yes</Button>
+                        </Grid>
+                    </Grid>
+                </Paper>
+            </Fade>
+        </Modal>
         </>
     )
 }
