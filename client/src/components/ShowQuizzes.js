@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useLayoutEffect } from 'react'
+import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from 'react'
 import axios from "axios"
 import { uuid } from "uuidv4"
 import { useDispatch, useSelector } from "react-redux"
@@ -138,7 +138,7 @@ export default function ShowQuizzes() {
     const classes = useStyles()
     const [quizzes, setQuizzes] = useState([])
     const [openQuestionId, setopenQuestionId] = useState(null)
-    const [mouseOverEdit, setMouseOverEdit] = useState(false)
+    const [showFab, setShowFab] = useState(false)
     const theme = useTheme()
     const { loading, error, data } = useQuery(gql`
         {
@@ -153,12 +153,33 @@ export default function ShowQuizzes() {
 
     const transitionDuration = {
         enter: theme.transitions.duration.enteringScreen,
-        exit: theme.transitions.duration.leavingScreen
+        exit: theme.transitions.duration.complex
     }
 
     function fetchQuizzes() {
         setQuizzes(data.quizzes.map(quiz => quiz.title))
     }
+
+    let closeFab
+
+    const setCloseFab = () => {
+        closeFab = setTimeout(() => {setShowFab(false)}, 2000)
+    }
+
+    const clearCloseFab = () => {
+        clearTimeout(closeFab)
+    }
+
+    const handleEditQuestionMouseMove = useCallback(
+        () => {
+            clearCloseFab()
+            setShowFab(true)
+            setCloseFab()
+        }, [])
+
+    useEffect(() => {
+        console.log(showFab)
+    }, [showFab])
 
     useLayoutEffect(() => {
         if (openQuestionId == "last") {
@@ -214,7 +235,7 @@ export default function ShowQuizzes() {
                     </Button>
                 </div>
             </Drawer>
-            <div className={classes.editQuestionContainer} onMouseEnter={() => {setMouseOverEdit(true)}} onMouseLeave={() => {setMouseOverEdit(false)}}>
+            <div className={classes.editQuestionContainer} onMouseMove={handleEditQuestionMouseMove}>
                 <Toolbar />
                 {openQuestionId && openQuestionId != "last" ? 
                     <>
@@ -232,22 +253,22 @@ export default function ShowQuizzes() {
                         <div className={classes.fabContainer}>
                             <Grid container direction="column" spacing={1}>
                                 <Grid item>
-                                    <Zoom in={mouseOverEdit} timeout={transitionDuration}>
-                                        <Fab size="small" disabled={findQuestionIndexById(openQuestionId) == 0} className={classes.shiftFab} onClick={() => {dispatch(decrementQuestionIndex(openQuestionId))}}>
+                                    <Zoom in={showFab} timeout={transitionDuration}>
+                                        <Fab size="medium" disabled={findQuestionIndexById(openQuestionId) == 0} className={classes.shiftFab} onClick={() => {dispatch(decrementQuestionIndex(openQuestionId))}}>
                                             <ArrowUpwardIcon></ArrowUpwardIcon>
                                         </Fab>
                                     </Zoom>
                                 </Grid>
                                 <Grid item>
-                                    <Zoom in={mouseOverEdit} timeout={transitionDuration}>
-                                        <Fab size="small" disabled={findQuestionIndexById(openQuestionId) == questions.length-1} className={classes.shiftFab} onClick={() => {dispatch(incrementQuestionIndex(openQuestionId))}}>
+                                    <Zoom in={showFab} timeout={transitionDuration}>
+                                        <Fab size="medium" disabled={findQuestionIndexById(openQuestionId) == questions.length-1} className={classes.shiftFab} onClick={() => {dispatch(incrementQuestionIndex(openQuestionId))}}>
                                             <ArrowDownwardIcon></ArrowDownwardIcon>
                                         </Fab>
                                     </Zoom>
                                 </Grid>
                                 <Grid item>
-                                    <Zoom in={mouseOverEdit} timeout={transitionDuration}>
-                                        <Fab size="small" color="secondary">
+                                    <Zoom in={showFab} timeout={transitionDuration}>
+                                        <Fab size="medium" color="secondary">
                                             <DeleteForeverIcon></DeleteForeverIcon>
                                         </Fab>
                                     </Zoom>
