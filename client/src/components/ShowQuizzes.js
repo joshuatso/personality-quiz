@@ -6,7 +6,7 @@ import { setTitle, addQuestion, setQuestionQuestion, incrementQuestionIndex, dec
 import { gql, useQuery } from "@apollo/client"
 import { AppBar, Toolbar, Button, ButtonBase, Typography, InputBase, TextField, IconButton, Grid, Paper, Drawer, Chip, Fab, Zoom } from "@material-ui/core"
 import CssBaseline from '@material-ui/core/CssBaseline'
-import { fade, makeStyles } from "@material-ui/core/styles"
+import { fade, makeStyles, useTheme } from "@material-ui/core/styles"
 import EditIcon from "@material-ui/icons/Edit"
 import MenuIcon from "@material-ui/icons/Menu"
 import AddIcon from "@material-ui/icons/Add"
@@ -138,6 +138,8 @@ export default function ShowQuizzes() {
     const classes = useStyles()
     const [quizzes, setQuizzes] = useState([])
     const [openQuestionId, setopenQuestionId] = useState(null)
+    const [mouseOverEdit, setMouseOverEdit] = useState(false)
+    const theme = useTheme()
     const { loading, error, data } = useQuery(gql`
         {
             quizzes {
@@ -148,6 +150,11 @@ export default function ShowQuizzes() {
 
     const findQuestionById = id => questions.filter(question => question.id == id)[0]
     const findQuestionIndexById = id => questions.findIndex(question => question.id == id)
+
+    const transitionDuration = {
+        enter: theme.transitions.duration.enteringScreen,
+        exit: theme.transitions.duration.leavingScreen
+    }
 
     function fetchQuizzes() {
         setQuizzes(data.quizzes.map(quiz => quiz.title))
@@ -207,7 +214,7 @@ export default function ShowQuizzes() {
                     </Button>
                 </div>
             </Drawer>
-            <div className={classes.editQuestionContainer}>
+            <div className={classes.editQuestionContainer} onMouseEnter={() => {setMouseOverEdit(true)}} onMouseLeave={() => {setMouseOverEdit(false)}}>
                 <Toolbar />
                 {openQuestionId && openQuestionId != "last" ? 
                     <>
@@ -221,25 +228,25 @@ export default function ShowQuizzes() {
                             className={classes.promptInput}
                             onChange={e => dispatch(setQuestionQuestion(openQuestionId, e.target.value))}
                         >
-                        </TextField> 
+                        </TextField>
                         <div className={classes.fabContainer}>
                             <Grid container direction="column" spacing={1}>
                                 <Grid item>
-                                    <Zoom in unmountOnExit>
+                                    <Zoom in={mouseOverEdit} timeout={transitionDuration}>
                                         <Fab size="small" disabled={findQuestionIndexById(openQuestionId) == 0} className={classes.shiftFab} onClick={() => {dispatch(decrementQuestionIndex(openQuestionId))}}>
                                             <ArrowUpwardIcon></ArrowUpwardIcon>
                                         </Fab>
                                     </Zoom>
                                 </Grid>
                                 <Grid item>
-                                    <Zoom in unmountOnExit>
+                                    <Zoom in={mouseOverEdit} timeout={transitionDuration}>
                                         <Fab size="small" disabled={findQuestionIndexById(openQuestionId) == questions.length-1} className={classes.shiftFab} onClick={() => {dispatch(incrementQuestionIndex(openQuestionId))}}>
                                             <ArrowDownwardIcon></ArrowDownwardIcon>
                                         </Fab>
                                     </Zoom>
                                 </Grid>
                                 <Grid item>
-                                    <Zoom in unmountOnExit>
+                                    <Zoom in={mouseOverEdit} timeout={transitionDuration}>
                                         <Fab size="small" color="secondary">
                                             <DeleteForeverIcon></DeleteForeverIcon>
                                         </Fab>
