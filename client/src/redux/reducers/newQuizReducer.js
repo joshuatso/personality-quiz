@@ -3,8 +3,10 @@ import {
     SET_TITLE,
     ADD_QUESTION,
     REMOVE_QUESTION,
+    SET_QUESTION_QUESTION,
     ADD_CHOICE,
     REMOVE_CHOICE,
+    SET_CHOICE_CHOICE,
     INCREMENT_QUESTION_INDEX,
     DECREMENT_QUESTION_INDEX,
     INCREMENT_CHOICE_INDEX,
@@ -13,7 +15,7 @@ import {
 import { uuid } from "uuidv4"
 
 const initialState = {
-    title: "",
+    title: "My Quiz",
     questions: []
 }
 
@@ -48,6 +50,11 @@ export default function(state=initialState, action){
                 ...state,
                 questions: state.questions.filter(question => question.id != action.payload.questionId)
             }
+        case SET_QUESTION_QUESTION:
+            return {
+                ...state,
+                questions: state.questions.map(q => q.id == action.payload.questionId ? {...q, question: action.payload.questionQuestion} : q)
+            }
         case ADD_CHOICE:
             return {
                 ...state,
@@ -57,6 +64,11 @@ export default function(state=initialState, action){
             return {
                 ...state,
                 questions: state.questions.map(question => question.id == action.payload.questionId ? {...question, choices: question.choices.filter(choice => choice.id != action.payload.choiceId)} : question)
+            }
+        case SET_CHOICE_CHOICE:
+            return {
+                ...state,
+                questions: state.questions.map(question => question.id == action.payload.questionId ? {...question, choices: question.choices.map(c => c.id == action.payload.choiceId ? {...c, choice: action.payload.choiceChoice} : c)} : question)
             }
         case INCREMENT_QUESTION_INDEX:
             var questionIndex = state.questions.findIndex(question => question.id == action.payload.questionId)

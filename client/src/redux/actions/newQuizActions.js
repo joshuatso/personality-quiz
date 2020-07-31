@@ -3,8 +3,10 @@ import {
     SET_TITLE,
     ADD_QUESTION,
     REMOVE_QUESTION,
+    SET_QUESTION_QUESTION,
     ADD_CHOICE,
     REMOVE_CHOICE,
+    SET_CHOICE_CHOICE,
     INCREMENT_QUESTION_INDEX,
     DECREMENT_QUESTION_INDEX,
     INCREMENT_CHOICE_INDEX,
@@ -44,6 +46,16 @@ export const removeQuestion = questionId => {
     }
 }
 
+export const setQuestionQuestion = (questionId, questionQuestion) => {
+    return {
+        type: SET_QUESTION_QUESTION,
+        payload: {
+            questionId,
+            questionQuestion
+        }
+    }
+}
+
 export const addChoice = (questionId, choice) => {
     return {
         type: ADD_CHOICE,
@@ -60,6 +72,17 @@ export const removeChoice = (questionId, choiceId) => {
         payload: {
             questionId,
             choiceId
+        }
+    }
+}
+
+export const setChoiceChoice = (questionId, choiceId, choiceChoice) => {
+    return {
+        type: SET_CHOICE_CHOICE,
+        payload: {
+            questionId,
+            choiceId,
+            choiceChoice
         }
     }
 }
@@ -92,7 +115,7 @@ export const incrementChoiceIndex = (questionId, choiceId) => {
     }
 }
 
-export const decrementQuestionIndex = (questionId, choiceId) => {
+export const decrementChoiceIndex = (questionId, choiceId) => {
     return {
         type: DECREMENT_CHOICE_INDEX,
         payload: {

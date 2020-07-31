@@ -10,7 +10,7 @@ import store from "./redux/store"
 import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 
 const client = new ApolloClient({
-  uri: '/graphql/quizzes',
+  uri: 'http://localhost:5000/graphql/quizzes',
   cache: new InMemoryCache()
 })
 
