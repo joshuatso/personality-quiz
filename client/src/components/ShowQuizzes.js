@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from
 import axios from "axios"
 import { uuid } from "uuidv4"
 import { useDispatch, useSelector } from "react-redux"
-import { setTitle, addQuestion, setQuestionQuestion, incrementQuestionIndex, decrementQuestionIndex, removeQuestion } from "../redux/actions/newQuizActions"
+import { setTitle, addQuestion, setQuestionQuestion, incrementQuestionIndex, decrementQuestionIndex, removeQuestion, setChoiceChoice, addChoice } from "../redux/actions/newQuizActions"
 import { gql, useQuery } from "@apollo/client"
 import { AppBar, Toolbar, Button, ButtonBase, Typography, InputBase, TextField, IconButton, Grid, Paper, Drawer, Chip, Fab, Zoom, Modal, Fade, Backdrop } from "@material-ui/core"
 import CssBaseline from '@material-ui/core/CssBaseline'
@@ -18,8 +18,7 @@ import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline"
 const useStyles = makeStyles((theme) => ({
     root: {
         display: 'flex',
-        height: "100vh",
-        alignItems: "stretch"
+        minHeight: "100vh"
     },
     appBar: {
         zIndex: theme.zIndex.drawer + 1,
@@ -74,10 +73,18 @@ const useStyles = makeStyles((theme) => ({
         padding: theme.spacing(2),
         paddingRight: 0
     },
+    questionContainer: {
+        position: "relative"
+    },
     questionPaper: {
+        position: "relative",
         height: 48,
         width: 300,
-        marginBottom: theme.spacing(0.5)
+        marginBottom: theme.spacing(0.5),
+        "&:hover": {
+            backgroundColor: theme.palette.info.light
+        },
+        zIndex: 101
     },
     openQuestionPaper: {
         backgroundColor: theme.palette.info.light
@@ -102,23 +109,42 @@ const useStyles = makeStyles((theme) => ({
         width: 300,
         padding: '0 30px'
     },
+    fakeAddQuestionButton: {
+        position: "absolute",
+        display: "flex",
+        justifyContent: "center",
+        alignItems: "center",
+        top: 0,
+        left: 0,
+        backgroundColor: theme.palette.common.white,
+        borderStyle: "dashed",
+        borderWidth: "2px",
+        borderColor: theme.palette.info.light,
+        color: theme.palette.info.light,
+        height: 48,
+        width: 300,
+        padding: '0 30px',
+        borderRadius: theme.shape.borderRadius,
+        zIndex: 100
+    },
     editQuestionContainer: {
         position: "relative",
         padding: theme.spacing(2),
-        flexGrow: 1
+        flexGrow: 1,
+        overflow: "auto"
     },
     questionHeader: {
         ...theme.typography.h6,
         marginBottom: theme.spacing(1)
     },
     promptInput: {
-        width: "100%"
+        width: "100%",
+        marginBottom: theme.spacing(2)
     },
     fabContainer: {
-        position: "absolute",
-        display: "inline-block",
+        position: "fixed",
         bottom: theme.spacing(2),
-        left: theme.spacing(2)
+        left: `calc(340 + ${theme.spacing(2)})`
     },
     fabGrid: {
         spacing: theme.spacing(1)
@@ -140,6 +166,16 @@ const useStyles = makeStyles((theme) => ({
     },
     modalPaper: {
         padding: theme.spacing(2)
+    },
+    choicesContainer:{
+        width: "100%"
+    },
+    choiceContainer:{
+        position: "relative"
+    },
+    choiceInput: {
+        width: "100%",
+        height: "100%"
     }
 }))
 
@@ -154,6 +190,7 @@ export default function ShowQuizzes() {
     const [fabAnimation, setFabAnimation] = useState(true)
     const [mouseOverFab, setMouseOverFab] = useState(false)
     const [modalOpen, setModalOpen] = useState(false)
+    const [showAddQuestion, setShowAddQuestion] = useState(true)
     const theme = useTheme()
     const { loading, error, data } = useQuery(gql`
         {
@@ -166,7 +203,7 @@ export default function ShowQuizzes() {
     const findQuestionById = id => questions.filter(question => question.id == id)[0]
     const findQuestionIndexById = id => questions.findIndex(question => question.id == id)
 
-    const transitionDuration = {
+    const fabTransitionDuration = {
         enter: fabAnimation ? theme.transitions.duration.enteringScreen : 0,
         exit: theme.transitions.duration.complex
     }
@@ -233,6 +270,12 @@ export default function ShowQuizzes() {
     }, [mouseOverFab, modalOpen])
 
     useLayoutEffect(() => {
+        if(!showAddQuestion) {
+            setShowAddQuestion(true)
+        }
+    }, [showAddQuestion])
+
+    useLayoutEffect(() => {
         if (openQuestionId == "last") {
             setOpenQuestionId(questions[questions.length-1].id)
         }
@@ -269,21 +312,31 @@ export default function ShowQuizzes() {
             <Drawer variant="permanent" className={classes.drawer} classes={{paper: classes.drawerPaper}}>
                 <Toolbar />
                 <div className={classes.questionListContainer}>
-                    {questions.map(question => 
-                        <Paper key={question.id} className={`${classes.questionPaper} ${question.id == openQuestionId ? classes.openQuestionPaper : null}`}>
-                            <ButtonBase className={classes.questionButton} onClick={() => {setOpenQuestionId(question.id)}}>
-                                <Typography noWrap variant="h6">
-                                    {`Question ${findQuestionIndexById(question.id)+1}: ${question.question}`}
-                                </Typography>
-                            </ButtonBase>
-                        </Paper>)
+                    {questions.map((question, index) => 
+                        <div className={classes.questionContainer}>
+                            <div className={classes.fakeAddQuestionButton}>
+                                <AddIcon></AddIcon>
+                            </div>
+                            <Fade in timeout={500}>
+                                <Paper key={question.id} className={`${classes.questionPaper} ${question.id == openQuestionId ? classes.openQuestionPaper : null}`}>
+                                    <ButtonBase className={classes.questionButton} onClick={() => {setOpenQuestionId(question.id)}}>
+                                        <Typography noWrap variant="h6">
+                                            {`${index+1}. ${question.question}`}
+                                        </Typography>
+                                    </ButtonBase>
+                                </Paper>
+                            </Fade>
+                        </div>)
                     }
-                    <Button className={classes.addQuestionButton} onClick={() => {
-                        dispatch(addQuestion({ question: "", choices: [] }))
-                        setOpenQuestionId("last")
-                    }}>
-                        <AddIcon></AddIcon>
-                    </Button>
+                    <Fade in={showAddQuestion} timeout={{enter: 1000, exit: 0}}>
+                        <Button className={classes.addQuestionButton} onClick={() => {
+                            dispatch(addQuestion({ question: "", choices: [] }))
+                            setOpenQuestionId("last")
+                            setShowAddQuestion(false)
+                        }}>                        
+                            <AddIcon></AddIcon>
+                        </Button>
+                    </Fade>
                 </div>
             </Drawer>
             <div className={classes.editQuestionContainer} onMouseMove={handleShowFab}>
@@ -301,10 +354,20 @@ export default function ShowQuizzes() {
                             onChange={e => dispatch(setQuestionQuestion(openQuestionId, e.target.value))}
                         >
                         </TextField>
+                        <Grid container direction="row" spacing={2} alignItems="stretch" className={classes.choicesContainer}>
+                            {findQuestionById(openQuestionId).choices.map((choice, index) =>
+                                <Grid item xs={12} md={6} className={classes.choiceContainer}>
+                                    <TextField label={`Choice ${index+1}`} value={choice.choice} onChange={e => dispatch(setChoiceChoice(openQuestionId, choice.id, e.target.value))} className={classes.choiceInput}></TextField>
+                                </Grid>
+                            )}
+                            <Grid item xs={12} md={6} className={classes.choiceContainer}>
+                                <Button className={classes.choiceInput} onClick={() => dispatch(addChoice(openQuestionId, {choice: ""}))}>Add a choice</Button>
+                            </Grid>
+                        </Grid>
                         <div className={classes.fabContainer}>
                             <Grid container direction="column" spacing={1}>
                                 <Grid item>
-                                    <Zoom in={showFab} timeout={transitionDuration}>
+                                    <Zoom in={showFab} timeout={fabTransitionDuration}>
                                         <div onMouseOver={() => setMouseOverFab(true)} onMouseLeave={() => setMouseOverFab(false)}> 
                                         <Fab size="medium" disabled={findQuestionIndexById(openQuestionId) == 0} className={classes.shiftFab} onClick={() => {dispatch(decrementQuestionIndex(openQuestionId))}}>
                                             <ArrowUpwardIcon></ArrowUpwardIcon>
@@ -313,7 +376,7 @@ export default function ShowQuizzes() {
                                     </Zoom>
                                 </Grid>
                                 <Grid item>
-                                    <Zoom in={showFab} timeout={transitionDuration}>
+                                    <Zoom in={showFab} timeout={fabTransitionDuration}>
                                         <div onMouseOver={() => setMouseOverFab(true)} onMouseLeave={() => setMouseOverFab(false)}> 
                                         <Fab size="medium" disabled={findQuestionIndexById(openQuestionId) == questions.length-1} className={classes.shiftFab} onClick={() => {dispatch(incrementQuestionIndex(openQuestionId))}} onMouseOver={() => {setMouseOverFab(true)}}>
                                             <ArrowDownwardIcon></ArrowDownwardIcon>
@@ -322,7 +385,7 @@ export default function ShowQuizzes() {
                                     </Zoom>
                                 </Grid>
                                 <Grid item>
-                                    <Zoom in={showFab} timeout={transitionDuration}>
+                                    <Zoom in={showFab} timeout={fabTransitionDuration}>
                                         <div onMouseOver={() => setMouseOverFab(true)} onMouseLeave={() => setMouseOverFab(false)}> 
                                         <Fab size="medium" color="secondary" onClick={handleDeleteFab} onMouseOver={() => {setMouseOverFab(true)}}>
                                             <DeleteIcon></DeleteIcon>
