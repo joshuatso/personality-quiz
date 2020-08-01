@@ -156,6 +156,9 @@ const useStyles = makeStyles((theme) => ({
             backgroundColor: theme.palette.info.dark
         }
     },
+    disabledShiftFab: {
+        backgroundColor: theme.palette.grey[500]
+    },
     modal: {
         display: "flex",
         justifyContent: "center",
@@ -171,7 +174,8 @@ const useStyles = makeStyles((theme) => ({
         width: "100%"
     },
     choiceContainer:{
-        position: "relative"
+        position: "relative",
+        height: 64
     },
     choiceInput: {
         width: "100%",
@@ -354,16 +358,18 @@ export default function ShowQuizzes() {
                             onChange={e => dispatch(setQuestionQuestion(openQuestionId, e.target.value))}
                         >
                         </TextField>
-                        <Grid container direction="row" spacing={2} alignItems="stretch" className={classes.choicesContainer}>
-                            {findQuestionById(openQuestionId).choices.map((choice, index) =>
+                        <div className={classes.choicesContainer}>
+                            <Grid container direction="row" spacing={2} alignItems="stretch">
+                                {findQuestionById(openQuestionId).choices.map((choice, index) =>
+                                    <Grid item xs={12} md={6} className={classes.choiceContainer}>
+                                        <TextField label={`Choice ${index+1}`} value={choice.choice} onChange={e => dispatch(setChoiceChoice(openQuestionId, choice.id, e.target.value))} className={classes.choiceInput}></TextField>
+                                    </Grid>
+                                )}
                                 <Grid item xs={12} md={6} className={classes.choiceContainer}>
-                                    <TextField label={`Choice ${index+1}`} value={choice.choice} onChange={e => dispatch(setChoiceChoice(openQuestionId, choice.id, e.target.value))} className={classes.choiceInput}></TextField>
+                                    <Button className={classes.choiceInput} onClick={() => dispatch(addChoice(openQuestionId, {choice: ""}))}>Add a choice</Button>
                                 </Grid>
-                            )}
-                            <Grid item xs={12} md={6} className={classes.choiceContainer}>
-                                <Button className={classes.choiceInput} onClick={() => dispatch(addChoice(openQuestionId, {choice: ""}))}>Add a choice</Button>
                             </Grid>
-                        </Grid>
+                        </div>
                         <div className={classes.fabContainer}>
                             <Grid container direction="column" spacing={1}>
                                 <Grid item>
