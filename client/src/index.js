@@ -9,6 +9,10 @@ import store from "./redux/store"
 // apollo
 import { ApolloClient, InMemoryCache, ApolloProvider } from '@apollo/client';
 
+// styles
+import { theme } from "./themes"
+import { ThemeProvider } from '@material-ui/core/styles'
+
 const client = new ApolloClient({
   uri: 'http://localhost:5000/graphql/quizzes',
   cache: new InMemoryCache()
@@ -18,7 +22,9 @@ ReactDOM.render(
   <React.StrictMode>
     <ApolloProvider client={client}>
       <Provider store={store}>
-        <App />
+        <ThemeProvider theme={theme}>
+          <App />
+        </ThemeProvider>
       </Provider>
     </ApolloProvider>
   </React.StrictMode>,

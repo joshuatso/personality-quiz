@@ -1,12 +1,15 @@
 import {
     CLEAR_QUIZ,
     SET_TITLE,
+    ADD_OUTCOME,
+    REMOVE_OUTCOME,
     ADD_QUESTION,
     REMOVE_QUESTION,
     SET_QUESTION_QUESTION,
     ADD_CHOICE,
     REMOVE_CHOICE,
     SET_CHOICE_CHOICE,
+    SET_WEIGHT,
     INCREMENT_QUESTION_INDEX,
     DECREMENT_QUESTION_INDEX,
     INCREMENT_CHOICE_INDEX,
@@ -40,6 +43,16 @@ export default function(state=initialState, action){
                 ...state,
                 title: action.payload.title
             }
+        case ADD_OUTCOME:
+            return {
+                ...state,
+                outcomes: [...state.outcomes, addId(action.payload.outcome)]
+            }
+        case REMOVE_OUTCOME:
+            return {
+                ...state,
+                outcomes: state.outcomes.filter(outcome => outcome.id != action.payload.outcomeId)
+            }
         case ADD_QUESTION:
             return {
                 ...state,
@@ -69,6 +82,11 @@ export default function(state=initialState, action){
             return {
                 ...state,
                 questions: state.questions.map(question => question.id == action.payload.questionId ? {...question, choices: question.choices.map(c => c.id == action.payload.choiceId ? {...c, choice: action.payload.choiceChoice} : c)} : question)
+            }
+        case SET_WEIGHT:
+            return {
+                ...state,
+                questions: state.questions.map(question => question.id == action.payload.questionId ? {...question, choices: question.choices.map(c => c.id == action.payload.choiceId ? {...c, weights: c.weights.map(w => w.outcomeId == action.payload.outcomeId ? {...w, weight: action.payload.weight} : w)} : c)} : question)
             }
         case INCREMENT_QUESTION_INDEX:
             var questionIndex = state.questions.findIndex(question => question.id == action.payload.questionId)

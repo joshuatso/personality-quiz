@@ -22,8 +22,30 @@ const quizSchema = new mongoose.Schema({
             choice: { 
                 type: String, 
                 required: true 
-            }
+            },
+            weights: [{
+                outcomeId: {
+                    type: mongoose.Types.ObjectId,
+                    required: true
+                },
+                weight: {
+                    type: Number,
+                    min: 0,
+                    max: 5,
+                    required: true
+                }
+            }]
         }]
+    }],
+    outcomes: [{
+        id: {
+            type: mongoose.Types.ObjectId,
+            required: true
+        },
+        outcome: {
+            type: String,
+            required: true
+        }
     }],
     dateCreated: {
         type: Date,

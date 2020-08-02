@@ -13,12 +13,49 @@ const {
 const Quiz = require("../../models/Quiz")
 const mongoose = require("mongoose")
 
+const OutcomeType = new GraphQLObjectType({
+    name: "Outcome",
+    description: "Represents a quiz's outcome",
+    fields: () => ({
+        id: { type: new GraphQLNonNull(GraphQLString) },
+        outcome: { type: new GraphQLNonNull(GraphQLString) }
+    })
+})
+
+const OutcomeInputType = new GraphQLInputObjectType({
+    name: "OutcomeInput",
+    description: "Represents a quiz's outcome input",
+    fields: () => ({
+        id: { type: new GraphQLNonNull(GraphQLString) },
+        outcome: { type: new GraphQLNonNull(GraphQLInt) }
+    })
+})
+
+const WeightType = new GraphQLObjectType({
+    name: "Weight",
+    description: "Represents a choice's weight for an outcome",
+    fields: () => ({
+        outcomeId: { type: new GraphQLNonNull(GraphQLString) },
+        weight: { type: new GraphQLNonNull(GraphQLInt) }
+    })
+})
+
+const WeightInputType = new GraphQLInputObjectType({
+    name: "WeightInput",
+    description: "Represents a weight input for an outcome",
+    fields: () => ({
+        outcomeId: { type: new GraphQLNonNull(GraphQLString) },
+        weight: { type: new GraphQLNonNull(GraphQLInt) }
+    })
+})
+
 const ChoiceType = new GraphQLObjectType({
     name: "Choice",
     description: "Represents a choice to a question",
     fields: () => ({
         id: { type: new GraphQLNonNull(GraphQLString) },
-        choice: { type: new GraphQLNonNull(GraphQLString) }
+        choice: { type: new GraphQLNonNull(GraphQLString) },
+        weights: { type: new GraphQLList(WeightType) }
     })
 })
 
@@ -26,7 +63,8 @@ const ChoiceInputType = new GraphQLInputObjectType({
     name: "ChoiceInput",
     description: "Represents a choice input to a question",
     fields: () => ({
-        choice: { type: new GraphQLNonNull(GraphQLString) }
+        choice: { type: new GraphQLNonNull(GraphQLString) },
+        weights: { type: new GraphQLList(WeightInputType) }
     })
 })
 
@@ -55,7 +93,8 @@ const QuizType = new GraphQLObjectType({
     fields: () => ({
         id: { type: new GraphQLNonNull(GraphQLString) },
         title: { type: new GraphQLNonNull(GraphQLString) },
-        questions: { type: new GraphQLList(QuestionType) }
+        questions: { type: new GraphQLList(QuestionType) },
+        outcomes: { type: new GraphQLList(OutcomeType) }
     })
 })
 
@@ -64,7 +103,8 @@ const QuizInputType = new GraphQLInputObjectType({
     description: "arguments for adding a quiz",
     fields: () => ({
         title: { type: new GraphQLNonNull(GraphQLString) },
-        questions: { type: new GraphQLList(QuestionInputType) }
+        questions: { type: new GraphQLList(QuestionInputType) },
+        outcomes: { type: new GraphQLList(OutcomeInputType) }
     })
 })
 
@@ -109,7 +149,8 @@ const RootMutationType = new GraphQLObjectType({
                                 ...choice,
                                 id: new mongoose.Types.ObjectId()
                             }))
-                        }))
+                        })),
+                        outcomes: args.input.outcomes
                     })
                     return await newQuiz.save()
                 } catch {
@@ -135,7 +176,9 @@ const RootMutationType = new GraphQLObjectType({
                                 ...choice,
                                 id: new mongoose.Types.ObjectId()
                             }))
-                        }))})
+                        })),
+                        outcomes: args.input.outcomes
+                    })
                 } catch {
                     throw Error("Error saving quiz")
                 }
