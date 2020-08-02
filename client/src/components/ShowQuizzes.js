@@ -15,6 +15,7 @@ import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward"
 import DeleteIcon from "@material-ui/icons/Delete"
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline"
 import QuestionScreen from "./QuestionScreen"
+import OutcomeScreen from "./OutcomeScreen"
 
 const useStyles = makeStyles((theme) => ({
     outerContainer: {
@@ -71,7 +72,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function ShowQuizzes() {
     const dispatch = useDispatch()
-    const { title, questions } = useSelector(state => state.newQuiz)
+    const { title } = useSelector(state => state.newQuiz)
     const classes = useStyles()
     const [quizzes, setQuizzes] = useState([])
     const [activeStep, setActiveStep] = useState(0)
@@ -129,7 +130,7 @@ export default function ShowQuizzes() {
                 </Stepper>
             </div>
             <div className={classes.lowerContainer}>
-                <QuestionScreen></QuestionScreen>
+                <OutcomeScreen></OutcomeScreen>
                 {/* <Button onClick={() => {fetchQuizzes()}}>Show Quizzes</Button>
                 {quizzes.map(quiz => <div key={uuid()}>{quiz}</div>)} */}
             </div>

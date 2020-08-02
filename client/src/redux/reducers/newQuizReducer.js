@@ -3,6 +3,7 @@ import {
     SET_TITLE,
     ADD_OUTCOME,
     REMOVE_OUTCOME,
+    SET_OUTCOME_OUTCOME,
     ADD_QUESTION,
     REMOVE_QUESTION,
     SET_QUESTION_QUESTION,
@@ -19,7 +20,8 @@ import { uuid } from "uuidv4"
 
 const initialState = {
     title: "My Quiz",
-    questions: []
+    questions: [],
+    outcomes: []
 }
 
 function addId(obj) {
@@ -52,6 +54,11 @@ export default function(state=initialState, action){
             return {
                 ...state,
                 outcomes: state.outcomes.filter(outcome => outcome.id != action.payload.outcomeId)
+            }
+        case SET_OUTCOME_OUTCOME:
+            return {
+                ...state,
+                outcomes: state.outcomes.map(o => o.id == action.payload.outcomeId ? {...o, outcome: action.payload.outcome} : o)
             }
         case ADD_QUESTION:
             return {

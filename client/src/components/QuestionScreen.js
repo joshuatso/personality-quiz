@@ -126,7 +126,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function QuestionScreen() {
     const dispatch = useDispatch()
-    const { title, questions } = useSelector(state => state.newQuiz)
+    const { questions } = useSelector(state => state.newQuiz)
     const classes = useStyles()
     const [openQuestionId, setOpenQuestionId] = useState(null)
     const [fabTimeoutId, setFabTimeoutId] = useState(null)
@@ -267,7 +267,7 @@ export default function QuestionScreen() {
                                     </Grid>
                                 )}
                                 <Grid item xs={12} md={6} className={classes.choiceContainer}>
-                                    <Button className={classes.choiceInput} onClick={() => dispatch(addChoice(openQuestionId, {choice: ""}))}>Add a choice</Button>
+                                    <Button className={classes.choiceInput} onClick={() => dispatch(addChoice(openQuestionId, {choice: "", weights: []}))}>Add a choice</Button>
                                 </Grid>
                             </Grid>
                         </div>

@@ -3,6 +3,7 @@ import {
     SET_TITLE,
     ADD_OUTCOME,
     REMOVE_OUTCOME,
+    SET_OUTCOME_OUTCOME,
     ADD_QUESTION,
     REMOVE_QUESTION,
     SET_QUESTION_QUESTION,
@@ -45,6 +46,16 @@ export const removeOutcome = outcomeId => {
         type: REMOVE_OUTCOME,
         payload: {
             outcomeId
+        }
+    }
+}
+
+export const setOutcomeOutcome = (outcomeId, outcome) => {
+    return {
+        type: SET_OUTCOME_OUTCOME,
+        payload: {
+            outcomeId,
+            outcome
         }
     }
 }
