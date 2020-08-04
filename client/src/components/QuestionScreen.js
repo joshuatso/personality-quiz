@@ -2,9 +2,10 @@ import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from
 import axios from "axios"
 import { uuid } from "uuidv4"
 import { useDispatch, useSelector } from "react-redux"
-import { setTitle, addQuestion, setQuestionQuestion, incrementQuestionIndex, decrementQuestionIndex, removeQuestion, setChoiceChoice, addChoice } from "../redux/actions/newQuizActions"
+import { setTitle, addQuestion, setQuestionQuestion, incrementQuestionIndex, decrementQuestionIndex, removeQuestion, setChoiceChoice, addChoice, setWeight } from "../redux/actions/newQuizActions"
 import { gql, useQuery } from "@apollo/client"
-import { AppBar, Toolbar, Button, ButtonBase, Typography, InputBase, TextField, IconButton, Grid, Paper, Drawer, Chip, Fab, Zoom, Modal, Fade, Backdrop, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Stepper, Step, StepLabel } from "@material-ui/core"
+import { AppBar, Toolbar, Button, ButtonBase, Typography, InputBase, TextField, IconButton, Grid, Paper, Drawer, Chip, Fab, Zoom, Modal, Fade, Backdrop, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Stepper, Step, StepLabel, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, ButtonGroup } from "@material-ui/core"
+import { ToggleButton, ToggleButtonGroup } from "@material-ui/lab"
 import CssBaseline from '@material-ui/core/CssBaseline'
 import { fade, makeStyles, useTheme } from "@material-ui/core/styles"
 import EditIcon from "@material-ui/icons/Edit"
@@ -14,6 +15,7 @@ import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward"
 import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward"
 import DeleteIcon from "@material-ui/icons/Delete"
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline"
+import OutcomeWeightToggler from "./OutcomeWeightToggler"
 
 const useStyles = makeStyles((theme) => ({
     questionListContainer: {
@@ -85,18 +87,24 @@ const useStyles = makeStyles((theme) => ({
         flexGrow: 1,
         overflow: "auto"
     },
-    questionHeader: {
+    questionHeaderContainer: {
+        position: "relative",
         ...theme.typography.h6,
-        marginBottom: theme.spacing(1)
+        display: "flex",
+        alignItems: "center",
+        marginBottom: theme.spacing(2)
+    },
+    questionHeaderLabel: {
+        marginRight: theme.spacing(1),
+        flexShrink: 0
     },
     promptInput: {
-        width: "100%",
-        marginBottom: theme.spacing(2)
+        flexGrow: 1
     },
     fabContainer: {
         position: "fixed",
-        bottom: theme.spacing(2),
-        left: `calc(340 + ${theme.spacing(2)})`
+        bottom: theme.spacing(3),
+        right: theme.spacing(3)
     },
     fabGrid: {
         spacing: theme.spacing(1)
@@ -119,14 +127,21 @@ const useStyles = makeStyles((theme) => ({
         height: 64
     },
     choiceInput: {
-        width: "100%",
+        width: 300,
         height: "100%"
+    },
+    choiceTable: {
+        // minWidth: "750"
+    },
+    addChoiceButton: {
+        height: "100%",
+        width: "100%"
     }
 }))
 
 export default function QuestionScreen() {
     const dispatch = useDispatch()
-    const { questions } = useSelector(state => state.newQuiz)
+    const { questions, outcomes } = useSelector(state => state.newQuiz)
     const classes = useStyles()
     const [openQuestionId, setOpenQuestionId] = useState(null)
     const [fabTimeoutId, setFabTimeoutId] = useState(null)
@@ -218,7 +233,7 @@ export default function QuestionScreen() {
         <>
             <div className={classes.questionListContainer}>
                 {questions.map((question, index) => 
-                    <div className={classes.questionContainer}>
+                    <div key={index} className={classes.questionContainer}>
                         <div className={classes.fakeAddQuestionButton}>
                             <AddIcon></AddIcon>
                         </div>
@@ -248,18 +263,53 @@ export default function QuestionScreen() {
             <div className={classes.editQuestionContainer} onMouseMove={handleShowFab}>
                 {openQuestionId && openQuestionId != "last" ? 
                     <>
-                        <div className={classes.questionHeader}>
-                            {`Question ${findQuestionIndexById(openQuestionId)+1}`}
+                        <div className={classes.questionHeaderContainer}>
+                            <div className={classes.questionHeaderLabel}>
+                                {`Question ${findQuestionIndexById(openQuestionId)+1}:`}
+                            </div>
+                            <TextField 
+                                label="Prompt" 
+                                variant="outlined" 
+                                value={findQuestionById(openQuestionId).question}
+                                className={classes.promptInput}
+                                onChange={e => dispatch(setQuestionQuestion(openQuestionId, e.target.value))}
+                            >
+                            </TextField>
                         </div>
-                        <TextField 
-                            label="Prompt" 
-                            variant="outlined" 
-                            value={findQuestionById(openQuestionId).question}
-                            className={classes.promptInput}
-                            onChange={e => dispatch(setQuestionQuestion(openQuestionId, e.target.value))}
-                        >
-                        </TextField>
-                        <div className={classes.choicesContainer}>
+                        <TableContainer component={Paper}>
+                            <Table size="small" className={classes.choicesTable}>
+                                <TableHead>
+                                    <TableRow>
+                                        <TableCell>Choice</TableCell>
+                                        {outcomes.map(outcome => 
+                                            <TableCell key={uuid()}>{outcome.outcome}</TableCell>
+                                        )}
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {findQuestionById(openQuestionId).choices.map((choice, index) =>
+                                        <TableRow key={index} hover>
+                                            <TableCell className={classes.choiceContainer}>
+                                                <TextField label={`Choice ${index+1}`} value={choice.choice} onChange={e => dispatch(setChoiceChoice(openQuestionId, choice.id, e.target.value))} className={classes.choiceInput}></TextField>
+                                            </TableCell>
+                                            {outcomes.map(outcome => {
+                                                    const weight = choice.weights.filter(weight => weight.outcomeId = outcome.id)
+                                                    return (
+                                                    <TableCell key={outcome.id + "cell"}>
+                                                        <OutcomeWeightToggler weight={weight.length != 0 ? weight[0].weight : 0} weightCallback={w => dispatch(setWeight(openQuestionId, choice.id, outcome.id, w))}></OutcomeWeightToggler>
+                                                    </TableCell>)
+                                            })}
+                                        </TableRow>
+                                    )}
+                                    <TableRow className={classes.choiceContainer}>
+                                        <TableCell colSpan={outcomes.length+1}>
+                                            <Button className={classes.addChoiceButton} onClick={() => dispatch(addChoice(openQuestionId, {choice: "", weights: []}))}>Add a choice</Button>
+                                        </TableCell>
+                                    </TableRow>
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                        {/* <div className={classes.choicesContainer}>
                             <Grid container direction="row" spacing={2} alignItems="stretch">
                                 {findQuestionById(openQuestionId).choices.map((choice, index) =>
                                     <Grid item xs={12} md={6} className={classes.choiceContainer}>
@@ -270,7 +320,7 @@ export default function QuestionScreen() {
                                     <Button className={classes.choiceInput} onClick={() => dispatch(addChoice(openQuestionId, {choice: "", weights: []}))}>Add a choice</Button>
                                 </Grid>
                             </Grid>
-                        </div>
+                        </div> */}
                         <div className={classes.fabContainer}>
                             <Grid container direction="column" spacing={1}>
                                 <Grid item>
@@ -314,7 +364,7 @@ export default function QuestionScreen() {
                 </DialogTitle>
                 <DialogContent>
                     <DialogContentText id="alert-dialog-description">
-                        You have made changes. This action is irreversible.
+                        You have made changes, this action is irreversible.
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>

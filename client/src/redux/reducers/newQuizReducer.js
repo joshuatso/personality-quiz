@@ -91,9 +91,11 @@ export default function(state=initialState, action){
                 questions: state.questions.map(question => question.id == action.payload.questionId ? {...question, choices: question.choices.map(c => c.id == action.payload.choiceId ? {...c, choice: action.payload.choiceChoice} : c)} : question)
             }
         case SET_WEIGHT:
+            const weightArray = state.questions.filter(q => q.id == action.payload.questionId)[0].choices.filter(c => c.id == action.payload.choiceId)[0].weights
+            const weightExists = weightArray.filter(w => w.outcomeId == action.payload.outcomeId).length != 0
             return {
                 ...state,
-                questions: state.questions.map(question => question.id == action.payload.questionId ? {...question, choices: question.choices.map(c => c.id == action.payload.choiceId ? {...c, weights: c.weights.map(w => w.outcomeId == action.payload.outcomeId ? {...w, weight: action.payload.weight} : w)} : c)} : question)
+                questions: state.questions.map(question => question.id == action.payload.questionId ? {...question, choices: question.choices.map(c => c.id == action.payload.choiceId ? {...c, weights: weightExists ? c.weights.map(w => w.outcomeId == action.payload.outcomeId ? {...w, weight: action.payload.weight} : w) : [...weightArray, {outcomeId: action.payload.outcomeId, weight: action.payload.weight}]} : c)} : question)
             }
         case INCREMENT_QUESTION_INDEX:
             var questionIndex = state.questions.findIndex(question => question.id == action.payload.questionId)

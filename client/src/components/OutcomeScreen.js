@@ -4,10 +4,16 @@ import { useSelector, useDispatch } from "react-redux"
 import { AppBar, Toolbar, Button, ButtonBase, Typography, InputBase, TextField, IconButton, Grid, Paper, Drawer, Chip, Fab, Zoom, Modal, Fade, Backdrop, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Stepper, Step, StepLabel } from "@material-ui/core"
 import { fade, makeStyles, useTheme } from "@material-ui/core/styles"
 import { addOutcome, removeOutcome, setOutcomeOutcome } from "../redux/actions/newQuizActions"
+import { uuid } from "uuidv4"
 
 const useStyles = makeStyles((theme) => ({
     outcomesContainer: {
-        width: "100%"
+        overflow: "auto",
+        width: "100%",
+        padding: theme.spacing(2)
+    },
+    outcomesGrid: {
+        overflow: "hidden"
     },
     outcomeContainer: {
         height: 200,
@@ -21,10 +27,10 @@ export default function OutcomeScreen() {
     const { outcomes } = useSelector(state => state.newQuiz)
 
     return (
-        <>
-            <Grid container direction="row" spacing={2} alignItems="flex-start">
+        <div className={classes.outcomesContainer}>
+            <Grid container direction="row" spacing={2} wrap="wrap" alignContent="flex-start" className={classes.outcomesGrid}>
                 {outcomes.map(outcome =>
-                    <Grid item xs={12} sm={6}>
+                    <Grid key={outcome.id} item xs={12} sm={6}>
                         <Paper className={classes.outcomeContainer}>
                             <TextField value={outcome.outcome} onChange={e => dispatch(setOutcomeOutcome(outcome.id, e.target.value))}></TextField>
                         </Paper>
@@ -36,6 +42,6 @@ export default function OutcomeScreen() {
                     </Button>
                 </Grid>
             </Grid>
-        </>
+        </div>
     )
 }

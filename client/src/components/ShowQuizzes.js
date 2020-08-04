@@ -16,6 +16,7 @@ import DeleteIcon from "@material-ui/icons/Delete"
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline"
 import QuestionScreen from "./QuestionScreen"
 import OutcomeScreen from "./OutcomeScreen"
+import logo from "../images/mainLogo.png"
 
 const useStyles = makeStyles((theme) => ({
     outerContainer: {
@@ -33,14 +34,35 @@ const useStyles = makeStyles((theme) => ({
     appBar: {
         zIndex: theme.zIndex.drawer + 1,
     },
-    stepperContainer: {
+    upperContainer: {
+        flexShrink: 0,
+    },
+    upperContentContainer: {
+        display: "flex"
+    },
+    stepperBackContainer: {
         flexShrink: 0
+    },
+    stepperBackButton: {
+        height: "100%"
+    },
+    stepperContainer: {
+        flexGrow: 1
+    },
+    stepperNextContainer: {
+        flexShrink: 0
+    },
+    stepperNextButton:{
+        height: "100%"
     },
     toolbar: {
         backgroundColor: theme.palette.primary.main
     },
-    menuButton: {
-        marginRight: theme.spacing(2),
+    logoButton: {
+        marginRight: theme.spacing(2)
+    },
+    logo: {
+        width: 40
     },
     titleWrapper: {
         position: "relative"
@@ -91,19 +113,30 @@ export default function ShowQuizzes() {
         setQuizzes(data.quizzes.map(quiz => quiz.title))
     }
 
+    function handleNext(){
+        setActiveStep(prevActiveStep => prevActiveStep == steps.length-1 ? prevActiveStep : prevActiveStep+1)
+    }
+
+    function handleBack(){
+        setActiveStep(prevActiveStep => prevActiveStep == 0 ? prevActiveStep : prevActiveStep-1)
+    }
+
     return (
         <>
         <CssBaseline />
         <AppBar position="fixed" className={classes.appBar}>
             <Toolbar classes={{root: classes.toolbar}}>
-                <IconButton
+                <ButtonBase className={classes.logoButton}>
+                    <img src={logo} className={classes.logo}></img>
+                </ButtonBase>
+                {/* <IconButton
                     edge="start"
                     className={classes.menuButton}
                     color="inherit"
                     aria-label="open drawer"
                 >
                     <MenuIcon />
-                </IconButton>
+                </IconButton> */}
                 <div className={classes.titleWrapper}>
                     <div className={classes.editIcon}>
                         <EditIcon></EditIcon>
@@ -119,18 +152,33 @@ export default function ShowQuizzes() {
             </Toolbar>
         </AppBar>
         <div className={classes.outerContainer}>
-            <div className={classes.stepperContainer}>
+            <div className={classes.upperContainer}>
                 <Toolbar />
-                <Stepper alternativeLabel activeStep={activeStep}>
-                    {steps.map((label) => (
-                    <Step key={label}>
-                        <StepLabel>{label}</StepLabel>
-                    </Step>
-                    ))}
-                </Stepper>
+                <div className={classes.upperContentContainer}>
+                    <div className={classes.stepperBackContainer}>
+                        <Button color="primary" className={classes.stepperBackButton} onClick={handleBack} disabled={activeStep == 0}>Back</Button>
+                    </div>
+                    <div className={classes.stepperContainer}>
+                        <Stepper alternativeLabel activeStep={activeStep}>
+                            {steps.map((label) => (
+                            <Step key={label}>
+                                <StepLabel>{label}</StepLabel>
+                            </Step>
+                            ))}
+                        </Stepper>
+                    </div>
+                    <div className={classes.stepperNextContainer}>
+                        <Button color="primary" className={classes.stepperNextButton} onClick={handleNext} disabled={activeStep == steps.length-1}>Next</Button>
+                    </div>
+                </div>
             </div>
             <div className={classes.lowerContainer}>
-                <OutcomeScreen></OutcomeScreen>
+                {[
+                    <OutcomeScreen></OutcomeScreen>,
+                    <QuestionScreen></QuestionScreen>,
+                    null,
+                    null
+                ][activeStep]}
                 {/* <Button onClick={() => {fetchQuizzes()}}>Show Quizzes</Button>
                 {quizzes.map(quiz => <div key={uuid()}>{quiz}</div>)} */}
             </div>
