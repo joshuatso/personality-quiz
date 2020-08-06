@@ -4,6 +4,7 @@ import {
     ADD_OUTCOME,
     REMOVE_OUTCOME,
     SET_OUTCOME_OUTCOME,
+    SET_OUTCOME_DESCRIPTION,
     ADD_QUESTION,
     REMOVE_QUESTION,
     SET_QUESTION_QUESTION,
@@ -59,6 +60,11 @@ export default function(state=initialState, action){
             return {
                 ...state,
                 outcomes: state.outcomes.map(o => o.id == action.payload.outcomeId ? {...o, outcome: action.payload.outcome} : o)
+            }
+        case SET_OUTCOME_DESCRIPTION:
+            return {
+                ...state,
+                outcomes: state.outcomes.map(o => o.id == action.payload.outcomeId ? {...o, description: action.payload.description} : o)
             }
         case ADD_QUESTION:
             return {

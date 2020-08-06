@@ -127,7 +127,7 @@ const useStyles = makeStyles((theme) => ({
         height: 64
     },
     choiceInput: {
-        width: 300,
+        width: 200,
         height: "100%"
     },
     choiceTable: {
@@ -139,26 +139,17 @@ const useStyles = makeStyles((theme) => ({
     }
 }))
 
-export default function QuestionScreen() {
+export default function QuestionScreen({openQuestionId, setOpenQuestionId}) {
     const dispatch = useDispatch()
     const { questions, outcomes } = useSelector(state => state.newQuiz)
     const classes = useStyles()
-    const [openQuestionId, setOpenQuestionId] = useState(null)
-    const [fabTimeoutId, setFabTimeoutId] = useState(null)
-    const [showFab, setShowFab] = useState(false)
-    const [fabAnimation, setFabAnimation] = useState(true)
-    const [mouseOverFab, setMouseOverFab] = useState(false)
     const [dialogOpen, setDialogOpen] = useState(false)
     const [showAddQuestion, setShowAddQuestion] = useState(true)
+    const [questionListAnimation, setQuestionListAnimation] = useState(false)
     const theme = useTheme()
 
     const findQuestionById = id => questions.filter(question => question.id == id)[0]
     const findQuestionIndexById = id => questions.findIndex(question => question.id == id)
-
-    const fabTransitionDuration = {
-        enter: fabAnimation ? theme.transitions.duration.enteringScreen : 0,
-        exit: theme.transitions.duration.complex
-    }
 
     function handleDeleteFab() {
         const openQuestion = findQuestionById(openQuestionId)
@@ -183,40 +174,6 @@ export default function QuestionScreen() {
         dispatch(removeQuestion(openQuestionId))
     }
 
-    const fabFunctions = (() => {
-        let closeFab
-        return {
-            setCloseFab: () => {
-                closeFab = setTimeout(() => {setShowFab(false)}, 2000)
-                setFabTimeoutId(closeFab)
-            },
-            clearCloseFab: () => {
-                clearTimeout(closeFab)
-                clearTimeout(fabTimeoutId)
-            }
-        }
-    })()
-
-    const handleShowFab = useCallback(
-        () => {
-            fabFunctions.clearCloseFab()
-            if (openQuestionId) {
-                setFabAnimation(true)
-                setShowFab(true)
-                if (!(mouseOverFab || dialogOpen)) {
-                    fabFunctions.setCloseFab()
-                }
-            }
-        }, [openQuestionId, mouseOverFab, dialogOpen])
-
-    useEffect(() => {
-        setFabAnimation(false)
-    }, [questions.length])
-
-    useEffect(() => {
-        handleShowFab()
-    }, [mouseOverFab, dialogOpen])
-
     useLayoutEffect(() => {
         if(!showAddQuestion) {
             setShowAddQuestion(true)
@@ -237,7 +194,7 @@ export default function QuestionScreen() {
                         <div className={classes.fakeAddQuestionButton}>
                             <AddIcon></AddIcon>
                         </div>
-                        <Fade in timeout={500}>
+                        <Fade in timeout={questionListAnimation ? 500 : 0}>
                             <Paper key={question.id} className={`${classes.questionPaper} ${question.id == openQuestionId ? classes.openQuestionPaper : null}`}>
                                 <ButtonBase className={classes.questionButton} onClick={() => {setOpenQuestionId(question.id)}}>
                                     <Typography noWrap variant="h6">
@@ -255,12 +212,13 @@ export default function QuestionScreen() {
                         dispatch(addQuestion({ question: "", choices: [] }))
                         setOpenQuestionId("last")
                         setShowAddQuestion(false)
+                        setQuestionListAnimation(true)
                     }}>                        
                         <AddIcon></AddIcon>
                     </Button>
                 </Fade>
             </div>
-            <div className={classes.editQuestionContainer} onMouseMove={handleShowFab}>
+            <div className={classes.editQuestionContainer}>
                 {openQuestionId && openQuestionId != "last" ? 
                     <>
                         <div className={classes.questionHeaderContainer}>
@@ -282,7 +240,7 @@ export default function QuestionScreen() {
                                     <TableRow>
                                         <TableCell>Choice</TableCell>
                                         {outcomes.map(outcome => 
-                                            <TableCell key={uuid()}>{outcome.outcome}</TableCell>
+                                            <TableCell key={outcome.id + "head"}>{outcome.outcome}</TableCell>
                                         )}
                                     </TableRow>
                                 </TableHead>
@@ -293,10 +251,10 @@ export default function QuestionScreen() {
                                                 <TextField label={`Choice ${index+1}`} value={choice.choice} onChange={e => dispatch(setChoiceChoice(openQuestionId, choice.id, e.target.value))} className={classes.choiceInput}></TextField>
                                             </TableCell>
                                             {outcomes.map(outcome => {
-                                                    const weight = choice.weights.filter(weight => weight.outcomeId = outcome.id)
+                                                    const weightArray = choice.weights.filter(weight => weight.outcomeId == outcome.id)
                                                     return (
                                                     <TableCell key={outcome.id + "cell"}>
-                                                        <OutcomeWeightToggler weight={weight.length != 0 ? weight[0].weight : 0} weightCallback={w => dispatch(setWeight(openQuestionId, choice.id, outcome.id, w))}></OutcomeWeightToggler>
+                                                        <OutcomeWeightToggler questionId={openQuestionId} choiceId={choice.id} outcomeId={outcome.id} weight={weightArray.length != 0 ? weightArray[0].weight : 0} ></OutcomeWeightToggler>
                                                     </TableCell>)
                                             })}
                                         </TableRow>
@@ -321,7 +279,7 @@ export default function QuestionScreen() {
                                 </Grid>
                             </Grid>
                         </div> */}
-                        <div className={classes.fabContainer}>
+                        {/* <div className={classes.fabContainer}>
                             <Grid container direction="column" spacing={1}>
                                 <Grid item>
                                     <Zoom in={showFab} timeout={fabTransitionDuration}>
@@ -351,7 +309,7 @@ export default function QuestionScreen() {
                                     </Zoom>
                                 </Grid>
                             </Grid>
-                        </div>
+                        </div> */}
                     </>
                 : null}
             </div>

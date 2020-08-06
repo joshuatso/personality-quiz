@@ -45,6 +45,9 @@ const quizSchema = new mongoose.Schema({
         outcome: {
             type: String,
             required: true
+        },
+        description: {
+            type: String
         }
     }],
     dateCreated: {

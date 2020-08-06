@@ -4,7 +4,8 @@ import { uuid } from "uuidv4"
 import { useDispatch, useSelector } from "react-redux"
 import { setTitle, addQuestion, setQuestionQuestion, incrementQuestionIndex, decrementQuestionIndex, removeQuestion, setChoiceChoice, addChoice } from "../redux/actions/newQuizActions"
 import { gql, useQuery } from "@apollo/client"
-import { AppBar, Toolbar, Button, ButtonBase, Typography, InputBase, TextField, IconButton, Grid, Paper, Drawer, Chip, Fab, Zoom, Modal, Fade, Backdrop, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Stepper, Step, StepLabel } from "@material-ui/core"
+import { AppBar, Toolbar, Button, ButtonBase, Typography, InputBase, TextField, IconButton, Grid, Paper, Drawer, Chip, Fab, Zoom, Modal, Fade, Backdrop, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Stepper, Step, StepLabel, Snackbar } from "@material-ui/core"
+import { Alert } from "@material-ui/lab"
 import CssBaseline from '@material-ui/core/CssBaseline'
 import { fade, makeStyles, useTheme } from "@material-ui/core/styles"
 import EditIcon from "@material-ui/icons/Edit"
@@ -16,6 +17,7 @@ import DeleteIcon from "@material-ui/icons/Delete"
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline"
 import QuestionScreen from "./QuestionScreen"
 import OutcomeScreen from "./OutcomeScreen"
+import DeployScreen from "./DeployScreen"
 import logo from "../images/mainLogo.png"
 
 const useStyles = makeStyles((theme) => ({
@@ -98,6 +100,11 @@ export default function ShowQuizzes() {
     const classes = useStyles()
     const [quizzes, setQuizzes] = useState([])
     const [activeStep, setActiveStep] = useState(0)
+    const [openQuestionId, setOpenQuestionId] = useState(null)
+    const [displayOutcomeErrors, setDisplayOutcomeErrors] = useState(false)
+    const [displayOutcomeErrorBar, setDisplayOutcomeErrorBar] = useState(false)
+    const [outcomeErrorIds, setOutcomeErrorIds] = useState([])
+    const [displayedOutcomeErrorIds, setDisplayedOutcomeErrorIds] = useState([])
     const theme = useTheme()
     const { loading, error, data } = useQuery(gql`
         {
@@ -107,17 +114,24 @@ export default function ShowQuizzes() {
         }
     `)
 
-    const steps = ["Outcomes", "Questions", "Settings", "Deploy!"]
+    const steps = ["Outcomes", "Questions", "Deploy", "Share"]
 
     function fetchQuizzes() {
         setQuizzes(data.quizzes.map(quiz => quiz.title))
     }
 
     function handleNext(){
+        setDisplayOutcomeErrors(true)
+        setDisplayedOutcomeErrorIds(outcomeErrorIds)
+        if (activeStep == 0 && outcomeErrorIds.length != 0) {
+            setDisplayOutcomeErrorBar(true)
+            return
+        }
         setActiveStep(prevActiveStep => prevActiveStep == steps.length-1 ? prevActiveStep : prevActiveStep+1)
     }
 
     function handleBack(){
+        setDisplayOutcomeErrors(false)
         setActiveStep(prevActiveStep => prevActiveStep == 0 ? prevActiveStep : prevActiveStep-1)
     }
 
@@ -174,15 +188,20 @@ export default function ShowQuizzes() {
             </div>
             <div className={classes.lowerContainer}>
                 {[
-                    <OutcomeScreen></OutcomeScreen>,
-                    <QuestionScreen></QuestionScreen>,
-                    null,
+                    <OutcomeScreen displayOutcomeErrors={displayOutcomeErrors} setOutcomeErrorIds={setOutcomeErrorIds} displayedOutcomeErrorIds={displayedOutcomeErrorIds}></OutcomeScreen>,
+                    <QuestionScreen openQuestionId={openQuestionId} setOpenQuestionId={setOpenQuestionId}></QuestionScreen>,
+                    <DeployScreen></DeployScreen>,
                     null
                 ][activeStep]}
                 {/* <Button onClick={() => {fetchQuizzes()}}>Show Quizzes</Button>
                 {quizzes.map(quiz => <div key={uuid()}>{quiz}</div>)} */}
             </div>
         </div>
+        <Snackbar open={displayOutcomeErrorBar} autoHideDuration={6000} onClose={() => setDisplayOutcomeErrorBar(false)}>
+            <Alert elevation={6} variant="filled" severity="error">
+                There were some errors on the outcomes screen.
+            </Alert>
+        </Snackbar>
         </>
     )
 }

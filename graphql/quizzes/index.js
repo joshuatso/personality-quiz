@@ -18,7 +18,8 @@ const OutcomeType = new GraphQLObjectType({
     description: "Represents a quiz's outcome",
     fields: () => ({
         id: { type: new GraphQLNonNull(GraphQLString) },
-        outcome: { type: new GraphQLNonNull(GraphQLString) }
+        outcome: { type: new GraphQLNonNull(GraphQLString) },
+        description: { type: GraphQLString }
     })
 })
 
@@ -27,7 +28,8 @@ const OutcomeInputType = new GraphQLInputObjectType({
     description: "Represents a quiz's outcome input",
     fields: () => ({
         id: { type: new GraphQLNonNull(GraphQLString) },
-        outcome: { type: new GraphQLNonNull(GraphQLInt) }
+        outcome: { type: new GraphQLNonNull(GraphQLInt) },
+        description: { type: GraphQLString }
     })
 })
 
