@@ -5,16 +5,24 @@ if (process.env.NODE_ENV !== "production"){
 const express = require("express")
 const mongoose = require("mongoose")
 const cors = require("cors")
+const expressJWT = require("express-jwt")
 
 // Routers
 const quizRouter = require("./routes/api/quizzes")
 const userRouter = require("./routes/api/users")
-const graphqlQuizRouter = require("./graphql/quizzes")
+const graphqlHTTP = require("./graphql")
 
 // Create express app
 const app = express()
 
-// Middleware
+// Create Auth middleware
+const auth = expressJWT({
+    secret: process.env.JWT_SECRET,
+    credentialsRequired: false,
+    algorithms: ['HS256']
+})
+
+// Use middleware
 app.use(express.json())
 app.use(cors())
 
@@ -29,6 +37,7 @@ mongoose
 app.use("/api/quizzes", quizRouter)
 app.use("/api/users", userRouter)
 
-app.use("/graphql/quizzes", graphqlQuizRouter)
+// GraphQL
+app.use("/graphql", auth, graphqlHTTP)
 
 app.listen(process.env.PORT || 5000)

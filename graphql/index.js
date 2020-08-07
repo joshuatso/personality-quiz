@@ -10,8 +10,50 @@ const {
     graphqlSync,
     GraphQLBoolean
 } = require("graphql")
-const Quiz = require("../../models/Quiz")
+const {
+    GraphQLDate,
+    GraphQLTime,
+    GraphQLDateTime
+} = require("graphql-iso-date")
+const Quiz = require("../models/Quiz")
+const User = require("../models/User")
 const mongoose = require("mongoose")
+const bcrypt = require("bcryptjs")
+const jwt = require("jsonwebtoken")
+
+if (process.env.NODE_ENV !== "production"){
+    require("dotenv").config()
+}
+
+const UserWithTokenType = new GraphQLObjectType({
+    name: "UserWithToken",
+    description: "Represents authenticated user with token",
+    fields: () => ({
+        token: { type: new GraphQLNonNull(GraphQLString) },
+        user: { type: UserType }
+    })
+})
+
+const UserType = new GraphQLObjectType({
+    name: "User",
+    description: "Represents a user",
+    fields: () => ({
+        id: { type: new GraphQLNonNull(GraphQLString) },
+        username: { type: new GraphQLNonNull(GraphQLString) },
+        email: { type: new GraphQLNonNull(GraphQLString) },
+        registerDate: { type: GraphQLDateTime }
+    })
+})
+
+const UserInputType = new GraphQLInputObjectType({
+    name: "UserInput",
+    description: "Represents a user input",
+    fields: () => ({
+        username: { type: new GraphQLNonNull(GraphQLString) },
+        password: { type: new GraphQLNonNull(GraphQLString) },
+        email: { type: new GraphQLNonNull(GraphQLString) }
+    })
+})
 
 const OutcomeType = new GraphQLObjectType({
     name: "Outcome",
@@ -28,7 +70,7 @@ const OutcomeInputType = new GraphQLInputObjectType({
     description: "Represents a quiz's outcome input",
     fields: () => ({
         id: { type: new GraphQLNonNull(GraphQLString) },
-        outcome: { type: new GraphQLNonNull(GraphQLInt) },
+        outcome: { type: new GraphQLNonNull(GraphQLString) },
         description: { type: GraphQLString }
     })
 })
@@ -66,6 +108,7 @@ const ChoiceInputType = new GraphQLInputObjectType({
     description: "Represents a choice input to a question",
     fields: () => ({
         choice: { type: new GraphQLNonNull(GraphQLString) },
+        // protected
         weights: { type: new GraphQLList(WeightInputType) }
     })
 })
@@ -120,12 +163,64 @@ const RootQueryType = new GraphQLObjectType({
             args: {
                 id: { type: GraphQLString }
             },
-            resolve: async (parent, args) => await Quiz.findById(args.id)
+            resolve: async (parent, {id}) => await Quiz.findById(id)
         },
         quizzes: {
             type: new GraphQLList(QuizType),
             description: 'List of All Quizzes',
             resolve: async () => await Quiz.find()
+        },
+        authenticateUser: {
+            type: UserWithTokenType,
+            description: "An authenticated user",
+            args: {
+                username: { type: GraphQLString },
+                password: { type: GraphQLString }
+            },
+            resolve: async (parent, {username, password}) => {
+                try {
+                    const foundUser = await User.findOne({ username })
+                    if (!foundUser) {
+                        throw Error("Username does not exist")
+                    }
+                    const isMatch = await bcrypt.compare(password, foundUser.password)
+                    if (!isMatch) {
+                        return Error("Invalid credentials")
+                    } else {
+                        const token = jwt.sign(
+                            {id: foundUser.id},
+                            process.env.JWT_SECRET,
+                            { expiresIn: 3600 }
+                        )
+                        return {token, user: foundUser}
+                    }
+                } catch (e) {
+                    if (e) {
+                        throw Error(e.message)
+                    } else {
+                        throw Error("Error adding user")
+                    }
+                }
+            }
+        },
+        user: {
+            type: UserType,
+            description: "A single user",
+            args: {
+                id: { type: GraphQLString }
+            },
+            resolve: async (parent, args, context) => {
+                try {
+                    console.log(context)
+                    if (!context.user || context.user.id != args.id) {
+                        throw Error("Not authorized to retrieve this information")
+                    }
+                    return await User.findById(args.id)
+                } catch(e) {
+                    if (e) throw Error(e.message)
+                    throw Error("Error retrieving user")
+                }
+            }
         }
     })
 })
@@ -134,17 +229,18 @@ const RootMutationType = new GraphQLObjectType({
     name: "Mutation",
     description: "Root mutation",
     fields: () => ({
+        // protected
         addQuiz: {
             type: QuizType,
             description: "add a quiz",
             args: {
                 input: { type: QuizInputType }
             },
-            resolve: async (parent, args) => {
+            resolve: async (parent, {input}) => {
                 try {
                     const newQuiz = new Quiz({
-                        title: args.input.title,
-                        questions: args.input.questions.map(question => ({
+                        title: input.title,
+                        questions: input.questions.map(question => ({
                             ...question,
                             id: new mongoose.Types.ObjectId(), 
                             choices: question.choices.map(choice => ({
@@ -152,7 +248,7 @@ const RootMutationType = new GraphQLObjectType({
                                 id: new mongoose.Types.ObjectId()
                             }))
                         })),
-                        outcomes: args.input.outcomes
+                        outcomes: input.outcomes
                     })
                     return await newQuiz.save()
                 } catch {
@@ -160,6 +256,7 @@ const RootMutationType = new GraphQLObjectType({
                 }
             }
         },
+        // protected
         updateQuiz: {
             type: QuizType,
             description: "update a quiz",
@@ -167,11 +264,11 @@ const RootMutationType = new GraphQLObjectType({
                 id: { type: GraphQLString },
                 input: { type: QuizInputType }
             },
-            resolve: async (parent, args) => {
+            resolve: async (parent, {id, input}) => {
                 try {
-                    return await Quiz.findOneAndReplace({_id: args.id}, { 
-                        ...args.input, 
-                        questions: args.input.questions.map(question => ({
+                    const newQuizObject = { 
+                        ...input, 
+                        questions: input.questions.map(question => ({
                             ...question,
                             id: new mongoose.Types.ObjectId(), 
                             choices: question.choices.map(choice => ({
@@ -179,22 +276,30 @@ const RootMutationType = new GraphQLObjectType({
                                 id: new mongoose.Types.ObjectId()
                             }))
                         })),
-                        outcomes: args.input.outcomes
-                    })
+                        outcomes: input.outcomes
+                    }
+                    const quizExist = await Quiz.findById(id)
+                    if (quizExist) {
+                        return await Quiz.findOneAndReplace({_id: id}, newQuizObject)
+                    } else {
+                        const newQuiz = new Quiz(newQuizObject)
+                        return await newQuiz.save()
+                    }
                 } catch {
                     throw Error("Error saving quiz")
                 }
             }
         },
+        // protected
         removeQuiz: {
             type: GraphQLBoolean,
             description: "remove a quiz",
             args: {
                 id: { type: GraphQLString }
             },
-            resolve: async (parent, args) => {
+            resolve: async (parent, {id}) => {
                 try {
-                    const quiz = await Quiz.findById(args.id)
+                    const quiz = await Quiz.findById(id)
                     if (!quiz) throw Error("Quiz not found")
             
                     const removed = await quiz.remove()
@@ -209,6 +314,43 @@ const RootMutationType = new GraphQLObjectType({
                     }
                 }
             }
+        },
+        addUser: {
+            type: UserWithTokenType,
+            description: "Add a user",
+            args: {
+                input: { type: UserInputType }
+            },
+            resolve: async (parent, {input}) => {
+                try {
+                    const usernameFoundUser = await User.findOne({ username: input.username })
+                    if (usernameFoundUser) {
+                        throw Error("Username already exists")
+                    }
+                    const emailFoundUser = await User.findOne({ email: input.email })
+                    if (emailFoundUser) {
+                        throw Error("Email already exists")
+                    }
+                    const hashedPassword = await bcrypt.hash(input.password, 10)
+                    const newUser = new User({
+                        ...input,
+                        password: hashedPassword
+                    })
+                    const savedUser = await newUser.save()
+                    const token = jwt.sign(
+                        {id: savedUser.id},
+                        process.env.JWT_SECRET,
+                        { expiresIn: 3600 }
+                    )
+                    return {token, user: savedUser}
+                } catch (e) {
+                    if (e) {
+                        throw Error(e.message)
+                    } else {
+                        throw Error("Error adding user")
+                    }
+                }
+            }
         }
     })
 })
@@ -218,7 +360,10 @@ const schema = new GraphQLSchema({
     mutation: RootMutationType
 })
 
-module.exports = graphqlHTTP({
+module.exports = graphqlHTTP(req => ({
     schema: schema,
-    graphiql: true
-})
+    graphiql: true,
+    context: {
+        user: req.user
+    }
+}))
