@@ -2,8 +2,7 @@ const mongoose = require("mongoose")
 
 const quizSchema = new mongoose.Schema({
     title: {
-        type: String,
-        required: true
+        type: String
     },
     questions: [{
         id: {
@@ -11,8 +10,7 @@ const quizSchema = new mongoose.Schema({
             required: true
         },
         question: {
-            type: String,
-            required: true
+            type: String
         },
         choices: [{
             id: {
@@ -20,8 +18,7 @@ const quizSchema = new mongoose.Schema({
                 required: true
             },
             choice: { 
-                type: String, 
-                required: true 
+                type: String
             },
             weights: [{
                 outcomeID: {
@@ -31,8 +28,7 @@ const quizSchema = new mongoose.Schema({
                 weight: {
                     type: Number,
                     min: 0,
-                    max: 5,
-                    required: true
+                    max: 5
                 }
             }]
         }]

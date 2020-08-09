@@ -139,7 +139,7 @@ const useStyles = makeStyles((theme) => ({
     }
 }))
 
-export default function QuestionScreen({openquestionID, setOpenquestionID}) {
+export default function QuestionScreen({openQuestionID, setOpenQuestionID}) {
     const dispatch = useDispatch()
     const { questions, outcomes } = useSelector(state => state.newQuiz)
     const classes = useStyles()
@@ -152,7 +152,7 @@ export default function QuestionScreen({openquestionID, setOpenquestionID}) {
     const findQuestionIndexById = id => questions.findIndex(question => question.id == id)
 
     function handleDeleteFab() {
-        const openQuestion = findQuestionById(openquestionID)
+        const openQuestion = findQuestionById(openQuestionID)
         if (openQuestion.question == "" && openQuestion.choices.length == 0) {
             handleDeleteQuestion()
         } else {
@@ -162,16 +162,16 @@ export default function QuestionScreen({openquestionID, setOpenquestionID}) {
 
     function handleDeleteQuestion() {
         if (questions.length == 1) {
-            setOpenquestionID(null)
+            setOpenQuestionID(null)
         } else {
-            const openQuestionIndex = findQuestionIndexById(openquestionID)
+            const openQuestionIndex = findQuestionIndexById(openQuestionID)
             if (openQuestionIndex == 0) {
-                setOpenquestionID(questions[1].id)
+                setOpenQuestionID(questions[1].id)
             } else {
-                setOpenquestionID(questions[openQuestionIndex-1].id)
+                setOpenQuestionID(questions[openQuestionIndex-1].id)
             }
         }
-        dispatch(removeQuestion(openquestionID))
+        dispatch(removeQuestion(openQuestionID))
     }
 
     useLayoutEffect(() => {
@@ -181,10 +181,10 @@ export default function QuestionScreen({openquestionID, setOpenquestionID}) {
     }, [showAddQuestion])
 
     useLayoutEffect(() => {
-        if (openquestionID == "last") {
-            setOpenquestionID(questions[questions.length-1].id)
+        if (openQuestionID == "last") {
+            setOpenQuestionID(questions[questions.length-1].id)
         }
-    }, [openquestionID])
+    }, [openQuestionID])
 
     return (
         <>
@@ -195,8 +195,8 @@ export default function QuestionScreen({openquestionID, setOpenquestionID}) {
                             <AddIcon></AddIcon>
                         </div>
                         <Fade in timeout={questionListAnimation ? 500 : 0}>
-                            <Paper key={question.id} className={`${classes.questionPaper} ${question.id == openquestionID ? classes.openQuestionPaper : null}`}>
-                                <ButtonBase className={classes.questionButton} onClick={() => {setOpenquestionID(question.id)}}>
+                            <Paper key={question.id} className={`${classes.questionPaper} ${question.id == openQuestionID ? classes.openQuestionPaper : null}`}>
+                                <ButtonBase className={classes.questionButton} onClick={() => {setOpenQuestionID(question.id)}}>
                                     <Typography noWrap variant="h6">
                                         {`${index+1}. ${question.question}`}
                                     </Typography>
@@ -210,7 +210,7 @@ export default function QuestionScreen({openquestionID, setOpenquestionID}) {
                     timeout={{enter: 1000, exit: 0}}>
                     <Button className={classes.addQuestionButton} onClick={() => {
                         dispatch(addQuestion({ question: "", choices: [] }))
-                        setOpenquestionID("last")
+                        setOpenQuestionID("last")
                         setShowAddQuestion(false)
                         setQuestionListAnimation(true)
                     }}>                        
@@ -219,18 +219,18 @@ export default function QuestionScreen({openquestionID, setOpenquestionID}) {
                 </Fade>
             </div>
             <div className={classes.editQuestionContainer}>
-                {openquestionID && openquestionID != "last" ? 
+                {openQuestionID && openQuestionID != "last" ? 
                     <>
                         <div className={classes.questionHeaderContainer}>
                             <div className={classes.questionHeaderLabel}>
-                                {`Question ${findQuestionIndexById(openquestionID)+1}:`}
+                                {`Question ${findQuestionIndexById(openQuestionID)+1}:`}
                             </div>
                             <TextField 
                                 label="Prompt" 
                                 variant="outlined" 
-                                value={findQuestionById(openquestionID).question}
+                                value={findQuestionById(openQuestionID).question}
                                 className={classes.promptInput}
-                                onChange={e => dispatch(setQuestionQuestion(openquestionID, e.target.value))}
+                                onChange={e => dispatch(setQuestionQuestion(openQuestionID, e.target.value))}
                             >
                             </TextField>
                         </div>
@@ -245,23 +245,23 @@ export default function QuestionScreen({openquestionID, setOpenquestionID}) {
                                     </TableRow>
                                 </TableHead>
                                 <TableBody>
-                                    {findQuestionById(openquestionID).choices.map((choice, index) =>
+                                    {findQuestionById(openQuestionID).choices.map((choice, index) =>
                                         <TableRow key={index} hover>
                                             <TableCell className={classes.choiceContainer}>
-                                                <TextField label={`Choice ${index+1}`} value={choice.choice} onChange={e => dispatch(setChoiceChoice(openquestionID, choice.id, e.target.value))} className={classes.choiceInput}></TextField>
+                                                <TextField label={`Choice ${index+1}`} value={choice.choice} onChange={e => dispatch(setChoiceChoice(openQuestionID, choice.id, e.target.value))} className={classes.choiceInput}></TextField>
                                             </TableCell>
                                             {outcomes.map(outcome => {
                                                     const weightArray = choice.weights.filter(weight => weight.outcomeID == outcome.id)
                                                     return (
                                                     <TableCell key={outcome.id + "cell"}>
-                                                        <OutcomeWeightToggler questionID={openquestionID} choiceID={choice.id} outcomeID={outcome.id} weight={weightArray.length != 0 ? weightArray[0].weight : 0} ></OutcomeWeightToggler>
+                                                        <OutcomeWeightToggler questionID={openQuestionID} choiceID={choice.id} outcomeID={outcome.id} weight={weightArray.length != 0 ? weightArray[0].weight : 0} ></OutcomeWeightToggler>
                                                     </TableCell>)
                                             })}
                                         </TableRow>
                                     )}
                                     <TableRow className={classes.choiceContainer}>
                                         <TableCell colSpan={outcomes.length+1}>
-                                            <Button className={classes.addChoiceButton} onClick={() => dispatch(addChoice(openquestionID, {choice: "", weights: []}))}>Add a choice</Button>
+                                            <Button className={classes.addChoiceButton} onClick={() => dispatch(addChoice(openQuestionID, {choice: "", weights: []}))}>Add a choice</Button>
                                         </TableCell>
                                     </TableRow>
                                 </TableBody>
@@ -269,13 +269,13 @@ export default function QuestionScreen({openquestionID, setOpenquestionID}) {
                         </TableContainer>
                         {/* <div className={classes.choicesContainer}>
                             <Grid container direction="row" spacing={2} alignItems="stretch">
-                                {findQuestionById(openquestionID).choices.map((choice, index) =>
+                                {findQuestionById(openQuestionID).choices.map((choice, index) =>
                                     <Grid item xs={12} md={6} className={classes.choiceContainer}>
-                                        <TextField label={`Choice ${index+1}`} value={choice.choice} onChange={e => dispatch(setChoiceChoice(openquestionID, choice.id, e.target.value))} className={classes.choiceInput}></TextField>
+                                        <TextField label={`Choice ${index+1}`} value={choice.choice} onChange={e => dispatch(setChoiceChoice(openQuestionID, choice.id, e.target.value))} className={classes.choiceInput}></TextField>
                                     </Grid>
                                 )}
                                 <Grid item xs={12} md={6} className={classes.choiceContainer}>
-                                    <Button className={classes.choiceInput} onClick={() => dispatch(addChoice(openquestionID, {choice: "", weights: []}))}>Add a choice</Button>
+                                    <Button className={classes.choiceInput} onClick={() => dispatch(addChoice(openQuestionID, {choice: "", weights: []}))}>Add a choice</Button>
                                 </Grid>
                             </Grid>
                         </div> */}
@@ -284,7 +284,7 @@ export default function QuestionScreen({openquestionID, setOpenquestionID}) {
                                 <Grid item>
                                     <Zoom in={showFab} timeout={fabTransitionDuration}>
                                         <div onMouseOver={() => setMouseOverFab(true)} onMouseLeave={() => setMouseOverFab(false)}> 
-                                        <Fab size="medium" disabled={findQuestionIndexById(openquestionID) == 0} className={classes.shiftFab} onClick={() => {dispatch(decrementQuestionIndex(openquestionID))}}>
+                                        <Fab size="medium" disabled={findQuestionIndexById(openQuestionID) == 0} className={classes.shiftFab} onClick={() => {dispatch(decrementQuestionIndex(openQuestionID))}}>
                                             <ArrowUpwardIcon></ArrowUpwardIcon>
                                         </Fab>
                                         </div>
@@ -293,7 +293,7 @@ export default function QuestionScreen({openquestionID, setOpenquestionID}) {
                                 <Grid item>
                                     <Zoom in={showFab} timeout={fabTransitionDuration}>
                                         <div onMouseOver={() => setMouseOverFab(true)} onMouseLeave={() => setMouseOverFab(false)}> 
-                                        <Fab size="medium" disabled={findQuestionIndexById(openquestionID) == questions.length-1} className={classes.shiftFab} onClick={() => {dispatch(incrementQuestionIndex(openquestionID))}} onMouseOver={() => {setMouseOverFab(true)}}>
+                                        <Fab size="medium" disabled={findQuestionIndexById(openQuestionID) == questions.length-1} className={classes.shiftFab} onClick={() => {dispatch(incrementQuestionIndex(openQuestionID))}} onMouseOver={() => {setMouseOverFab(true)}}>
                                             <ArrowDownwardIcon></ArrowDownwardIcon>
                                         </Fab>
                                         </div>

@@ -57,45 +57,47 @@ const typeDefs = gql`
 
     type Weight {
         outcomeID: ID!,
-        weight: Int!
+        weight: Int
     }
 
     input WeightInput {
         outcomeID: ID!,
-        weight: Int!
+        weight: Int
     }
 
     type Choice {
         id: ID!,
-        choice: String!,
+        choice: String,
         weights: [Weight]!
     }
 
     input ChoiceInput {
-        chocie: String!,
+        id: ID!,
+        choice: String,
         weights: [WeightInput]!
     }
 
     type Question {
         id: ID!,
-        question: String!,
+        question: String,
         choices: [Choice]!
     }
 
     input QuestionInput {
-        question: String!,
+        id: ID!,
+        question: String,
         choices: [ChoiceInput]!
     }
 
     type Quiz {
         id: ID!,
-        title: String!,
+        title: String,
         questions: [Question]!,
         outcomes: [Outcome]!
     }
 
     input QuizInput {
-        title: String!,
+        title: String,
         questions: [QuestionInput]!,
         outcomes: [OutcomeInput]!
     }

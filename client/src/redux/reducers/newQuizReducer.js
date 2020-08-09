@@ -144,7 +144,9 @@ export default function(state=initialState, action){
                     query: `
                         mutation UpdateQuiz($id: ID!, $quiz: QuizInput) {
                             updateQuiz(id: $id, quiz: $quiz) {
-                                id
+                                outcomes {
+                                    outcome
+                                }
                             }
                         }
                     `,

@@ -27,13 +27,16 @@ export const clearQuiz = () => {
     }
 }
 
-export const setTitle = title => {
-    return {
+export const setTitle = title => dispatch => {
+    dispatch({
         type: SET_TITLE,
         payload: {
             title
         }
-    }
+    })
+    dispatch({
+        type: SAVE_QUIZ
+    })
 }
 
 export const addOutcome = outcome => dispatch => {
@@ -48,13 +51,16 @@ export const addOutcome = outcome => dispatch => {
     })
 }
 
-export const removeOutcome = outcomeID => {
-    return {
+export const removeOutcome = outcomeID => dispatch => {
+    dispatch({
         type: REMOVE_OUTCOME,
         payload: {
             outcomeID
         }
-    }
+    })
+    dispatch({
+        type: SAVE_QUIZ
+    })
 }
 
 export const setOutcomeOutcome = (outcomeID, outcome) => dispatch => {
@@ -70,77 +76,98 @@ export const setOutcomeOutcome = (outcomeID, outcome) => dispatch => {
     })
 }
 
-export const setOutcomeDescription = (outcomeID, description) => {
-    return {
+export const setOutcomeDescription = (outcomeID, description) => dispatch => {
+    dispatch({
         type: SET_OUTCOME_DESCRIPTION,
         payload: {
             outcomeID,
             description
         }
-    }
+    })
+    dispatch({
+        type: SAVE_QUIZ
+    })
 }
 
-export const addQuestion = question => {
-    return {
+export const addQuestion = question => dispatch => {
+    dispatch({
         type: ADD_QUESTION,
         payload: {
             question
         }
-    }
+    })
+    dispatch({
+        type: SAVE_QUIZ
+    })
 }
 
-export const removeQuestion = questionID => {
-    return {
+export const removeQuestion = questionID => dispatch => {
+    dispatch({
         type: REMOVE_QUESTION,
         payload: {
             questionID
         }
-    }
+    })
+    dispatch({
+        type: SAVE_QUIZ
+    })
 }
 
-export const setQuestionQuestion = (questionID, questionQuestion) => {
-    return {
+export const setQuestionQuestion = (questionID, questionQuestion) => dispatch => {
+    dispatch({
         type: SET_QUESTION_QUESTION,
         payload: {
             questionID,
             questionQuestion
         }
-    }
+    })
+    dispatch({
+        type: SAVE_QUIZ
+    })
 }
 
-export const addChoice = (questionID, choice) => {
-    return {
+export const addChoice = (questionID, choice) => dispatch => {
+    dispatch({
         type: ADD_CHOICE,
         payload: {
             questionID,
             choice
         }
-    }
+    })
+    dispatch({
+        type: SAVE_QUIZ
+    })
 }
 
-export const removeChoice = (questionID, choiceID) => {
-    return {
+export const removeChoice = (questionID, choiceID) => dispatch => {
+    dispatch({
         type: REMOVE_CHOICE,
         payload: {
             questionID,
             choiceID
         }
-    }
+    })
+    dispatch({
+        type: SAVE_QUIZ
+    })
 }
 
-export const setChoiceChoice = (questionID, choiceID, choiceChoice) => {
-    return {
+export const setChoiceChoice = (questionID, choiceID, choiceChoice) => dispatch => {
+    dispatch({
         type: SET_CHOICE_CHOICE,
         payload: {
             questionID,
             choiceID,
             choiceChoice
         }
-    }
+    })
+    dispatch({
+        type: SAVE_QUIZ
+    })
 }
 
-export const setWeight = (questionID, choiceID, outcomeID, weight) => {
-    return {
+export const setWeight = (questionID, choiceID, outcomeID, weight) => dispatch => {
+    dispatch({
         type: SET_WEIGHT,
         payload: {
             questionID,
@@ -148,45 +175,60 @@ export const setWeight = (questionID, choiceID, outcomeID, weight) => {
             outcomeID,
             weight
         }
-    }
+    })
+    dispatch({
+        type: SAVE_QUIZ
+    })
 }
 
-export const incrementQuestionIndex = questionID => {
-    return {
+export const incrementQuestionIndex = questionID => dispatch => {
+    dispatch({
         type: INCREMENT_QUESTION_INDEX,
         payload: {
             questionID
         }
-    }
+    })
+    dispatch({
+        type: SAVE_QUIZ
+    })
 }
 
-export const decrementQuestionIndex = questionID => {
-    return {
+export const decrementQuestionIndex = questionID => dispatch => {
+    dispatch({
         type: DECREMENT_QUESTION_INDEX,
         payload: {
             questionID
         }
-    }
+    })
+    dispatch({
+        type: SAVE_QUIZ
+    })
 }
 
-export const incrementChoiceIndex = (questionID, choiceID) => {
-    return {
+export const incrementChoiceIndex = (questionID, choiceID) => dispatch => {
+    dispatch({
         type: INCREMENT_CHOICE_INDEX,
         payload: {
             questionID,
             choiceID
         }
-    }
+    })
+    dispatch({
+        type: SAVE_QUIZ
+    })
 }
 
-export const decrementChoiceIndex = (questionID, choiceID) => {
-    return {
+export const decrementChoiceIndex = (questionID, choiceID) => dispatch => {
+    dispatch({
         type: DECREMENT_CHOICE_INDEX,
         payload: {
             questionID,
             choiceID
         }
-    }
+    })
+    dispatch({
+        type: SAVE_QUIZ
+    })
 }
 
 export const saveQuiz = () => {

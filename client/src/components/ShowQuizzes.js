@@ -101,7 +101,7 @@ export default function ShowQuizzes() {
     const classes = useStyles()
     const [quizzes, setQuizzes] = useState([])
     const [activeStep, setActiveStep] = useState(0)
-    const [openquestionID, setopenquestionID] = useState(null)
+    const [openQuestionID, setOpenQuestionID] = useState(null)
     const [displayOutcomeErrors, setDisplayOutcomeErrors] = useState(false)
     const [displayOutcomeErrorBar, setDisplayOutcomeErrorBar] = useState(false)
     const [outcomeErrorIds, setOutcomeErrorIds] = useState([])
@@ -122,9 +122,9 @@ export default function ShowQuizzes() {
     }
 
     function handleNext(){
-        setDisplayOutcomeErrors(true)
-        setDisplayedOutcomeErrorIds(outcomeErrorIds)
         if (activeStep == 1 && outcomeErrorIds.length != 0) {
+            setDisplayOutcomeErrors(true)
+            setDisplayedOutcomeErrorIds(outcomeErrorIds)
             setDisplayOutcomeErrorBar(true)
             return
         }
@@ -191,7 +191,7 @@ export default function ShowQuizzes() {
                 {[
                     <TestInput></TestInput>,
                     <OutcomeScreen displayOutcomeErrors={displayOutcomeErrors} setOutcomeErrorIds={setOutcomeErrorIds} displayedOutcomeErrorIds={displayedOutcomeErrorIds}></OutcomeScreen>,
-                    <QuestionScreen openquestionID={openquestionID} setopenquestionID={setopenquestionID}></QuestionScreen>,
+                    <QuestionScreen openQuestionID={openQuestionID} setOpenQuestionID={setOpenQuestionID}></QuestionScreen>,
                     <DeployScreen></DeployScreen>,
                     null
                 ][activeStep]}
