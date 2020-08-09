@@ -14,7 +14,7 @@ import { theme } from "./themes"
 import { ThemeProvider } from '@material-ui/core/styles'
 
 const client = new ApolloClient({
-  uri: 'http://localhost:5000/graphql/quizzes',
+  uri: 'http://localhost:5000/graphql',
   cache: new InMemoryCache()
 })
 

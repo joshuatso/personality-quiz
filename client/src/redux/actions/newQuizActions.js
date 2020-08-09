@@ -15,8 +15,11 @@ import {
     INCREMENT_QUESTION_INDEX,
     DECREMENT_QUESTION_INDEX,
     INCREMENT_CHOICE_INDEX,
-    DECREMENT_CHOICE_INDEX
+    DECREMENT_CHOICE_INDEX,
+    SAVE_QUIZ,
+    CREATE_QUIZ
 } from "./types"
+import axios from "axios"
 
 export const clearQuiz = () => {
     return {
@@ -33,39 +36,45 @@ export const setTitle = title => {
     }
 }
 
-export const addOutcome = outcome => {
-    return {
+export const addOutcome = outcome => dispatch => {
+    dispatch ({
         type: ADD_OUTCOME,
         payload: {
             outcome
         }
-    }
+    })
+    dispatch({
+        type: SAVE_QUIZ
+    })
 }
 
-export const removeOutcome = outcomeId => {
+export const removeOutcome = outcomeID => {
     return {
         type: REMOVE_OUTCOME,
         payload: {
-            outcomeId
+            outcomeID
         }
     }
 }
 
-export const setOutcomeOutcome = (outcomeId, outcome) => {
-    return {
+export const setOutcomeOutcome = (outcomeID, outcome) => dispatch => {
+    dispatch({
         type: SET_OUTCOME_OUTCOME,
         payload: {
-            outcomeId,
+            outcomeID,
             outcome
         }
-    }
+    })
+    dispatch({
+        type: SAVE_QUIZ
+    })
 }
 
-export const setOutcomeDescription = (outcomeId, description) => {
+export const setOutcomeDescription = (outcomeID, description) => {
     return {
         type: SET_OUTCOME_DESCRIPTION,
         payload: {
-            outcomeId,
+            outcomeID,
             description
         }
     }
@@ -80,102 +89,135 @@ export const addQuestion = question => {
     }
 }
 
-export const removeQuestion = questionId => {
+export const removeQuestion = questionID => {
     return {
         type: REMOVE_QUESTION,
         payload: {
-            questionId
+            questionID
         }
     }
 }
 
-export const setQuestionQuestion = (questionId, questionQuestion) => {
+export const setQuestionQuestion = (questionID, questionQuestion) => {
     return {
         type: SET_QUESTION_QUESTION,
         payload: {
-            questionId,
+            questionID,
             questionQuestion
         }
     }
 }
 
-export const addChoice = (questionId, choice) => {
+export const addChoice = (questionID, choice) => {
     return {
         type: ADD_CHOICE,
         payload: {
-            questionId,
+            questionID,
             choice
         }
     }
 }
 
-export const removeChoice = (questionId, choiceId) => {
+export const removeChoice = (questionID, choiceID) => {
     return {
         type: REMOVE_CHOICE,
         payload: {
-            questionId,
-            choiceId
+            questionID,
+            choiceID
         }
     }
 }
 
-export const setChoiceChoice = (questionId, choiceId, choiceChoice) => {
+export const setChoiceChoice = (questionID, choiceID, choiceChoice) => {
     return {
         type: SET_CHOICE_CHOICE,
         payload: {
-            questionId,
-            choiceId,
+            questionID,
+            choiceID,
             choiceChoice
         }
     }
 }
 
-export const setWeight = (questionId, choiceId, outcomeId, weight) => {
+export const setWeight = (questionID, choiceID, outcomeID, weight) => {
     return {
         type: SET_WEIGHT,
         payload: {
-            questionId,
-            choiceId,
-            outcomeId,
+            questionID,
+            choiceID,
+            outcomeID,
             weight
         }
     }
 }
 
-export const incrementQuestionIndex = questionId => {
+export const incrementQuestionIndex = questionID => {
     return {
         type: INCREMENT_QUESTION_INDEX,
         payload: {
-            questionId
+            questionID
         }
     }
 }
 
-export const decrementQuestionIndex = questionId => {
+export const decrementQuestionIndex = questionID => {
     return {
         type: DECREMENT_QUESTION_INDEX,
         payload: {
-            questionId
+            questionID
         }
     }
 }
 
-export const incrementChoiceIndex = (questionId, choiceId) => {
+export const incrementChoiceIndex = (questionID, choiceID) => {
     return {
         type: INCREMENT_CHOICE_INDEX,
         payload: {
-            questionId,
-            choiceId
+            questionID,
+            choiceID
         }
     }
 }
 
-export const decrementChoiceIndex = (questionId, choiceId) => {
+export const decrementChoiceIndex = (questionID, choiceID) => {
     return {
         type: DECREMENT_CHOICE_INDEX,
         payload: {
-            questionId,
-            choiceId
+            questionID,
+            choiceID
         }
     }
+}
+
+export const saveQuiz = () => {
+    return {
+        type: SAVE_QUIZ
+    }
+}
+
+export const createQuiz = () => dispatch => {
+    axios
+        .post("http://localhost:5000/graphql", {
+            query: `
+                mutation CreateQuiz($quiz: QuizInput) {
+                    addQuiz(quiz: $quiz) {
+                        id
+                    }
+                }
+            `,
+            variables: {quiz: {
+                title: "My Quiz",
+                questions: [],
+                outcomes: []
+            }}
+        })
+        .then(res => dispatch({
+            type: CREATE_QUIZ,
+            payload: {
+                id: res.data.data.addQuiz.id
+            }
+        }))
+        .catch (() => {
+            console.log("Error creating quiz")
+        })
 }

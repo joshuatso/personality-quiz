@@ -7,7 +7,7 @@ import { pure, shouldUpdate } from "recompose"
 
 const weightColors = ["#e9fbf8", "#bef3e9", "#93ebdb", "#68e3cd", "#3ddbbe"]
 
-const OutcomeWeightToggler = ({ questionId, choiceId, outcomeId, weight }) => {
+const OutcomeWeightToggler = ({ questionID, choiceID, outcomeID, weight }) => {
     const dispatch = useDispatch()
     
     const classes = makeStyles({
@@ -17,7 +17,7 @@ const OutcomeWeightToggler = ({ questionId, choiceId, outcomeId, weight }) => {
     })
 
     const toggleWeightCallback = useCallback(value => {
-        dispatch(setWeight(questionId, choiceId, outcomeId, value == weight ? 0 : value))
+        dispatch(setWeight(questionID, choiceID, outcomeID, value == weight ? 0 : value))
     }, [weight])
 
     return (

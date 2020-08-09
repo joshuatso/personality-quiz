@@ -15,11 +15,15 @@ import {
     INCREMENT_QUESTION_INDEX,
     DECREMENT_QUESTION_INDEX,
     INCREMENT_CHOICE_INDEX,
-    DECREMENT_CHOICE_INDEX
+    DECREMENT_CHOICE_INDEX,
+    SAVE_QUIZ,
+    CREATE_QUIZ
 } from "../actions/types"
 import { uuid } from "uuidv4"
+import axios from "axios"
 
 const initialState = {
+    id: "",
     title: "My Quiz",
     questions: [],
     outcomes: []
@@ -54,17 +58,17 @@ export default function(state=initialState, action){
         case REMOVE_OUTCOME:
             return {
                 ...state,
-                outcomes: state.outcomes.filter(outcome => outcome.id != action.payload.outcomeId)
+                outcomes: state.outcomes.filter(outcome => outcome.id != action.payload.outcomeID)
             }
         case SET_OUTCOME_OUTCOME:
             return {
                 ...state,
-                outcomes: state.outcomes.map(o => o.id == action.payload.outcomeId ? {...o, outcome: action.payload.outcome} : o)
+                outcomes: state.outcomes.map(o => o.id == action.payload.outcomeID ? {...o, outcome: action.payload.outcome} : o)
             }
         case SET_OUTCOME_DESCRIPTION:
             return {
                 ...state,
-                outcomes: state.outcomes.map(o => o.id == action.payload.outcomeId ? {...o, description: action.payload.description} : o)
+                outcomes: state.outcomes.map(o => o.id == action.payload.outcomeID ? {...o, description: action.payload.description} : o)
             }
         case ADD_QUESTION:
             return {
@@ -74,64 +78,84 @@ export default function(state=initialState, action){
         case REMOVE_QUESTION:
             return {
                 ...state,
-                questions: state.questions.filter(question => question.id != action.payload.questionId)
+                questions: state.questions.filter(question => question.id != action.payload.questionID)
             }
         case SET_QUESTION_QUESTION:
             return {
                 ...state,
-                questions: state.questions.map(q => q.id == action.payload.questionId ? {...q, question: action.payload.questionQuestion} : q)
+                questions: state.questions.map(q => q.id == action.payload.questionID ? {...q, question: action.payload.questionQuestion} : q)
             }
         case ADD_CHOICE:
             return {
                 ...state,
-                questions: state.questions.map(question => question.id == action.payload.questionId ? {...question, choices: [...question.choices, addId(action.payload.choice)]} : question)
+                questions: state.questions.map(question => question.id == action.payload.questionID ? {...question, choices: [...question.choices, addId(action.payload.choice)]} : question)
             }
         case REMOVE_CHOICE:
             return {
                 ...state,
-                questions: state.questions.map(question => question.id == action.payload.questionId ? {...question, choices: question.choices.filter(choice => choice.id != action.payload.choiceId)} : question)
+                questions: state.questions.map(question => question.id == action.payload.questionID ? {...question, choices: question.choices.filter(choice => choice.id != action.payload.choiceID)} : question)
             }
         case SET_CHOICE_CHOICE:
             return {
                 ...state,
-                questions: state.questions.map(question => question.id == action.payload.questionId ? {...question, choices: question.choices.map(c => c.id == action.payload.choiceId ? {...c, choice: action.payload.choiceChoice} : c)} : question)
+                questions: state.questions.map(question => question.id == action.payload.questionID ? {...question, choices: question.choices.map(c => c.id == action.payload.choiceID ? {...c, choice: action.payload.choiceChoice} : c)} : question)
             }
         case SET_WEIGHT:
-            const weightArray = state.questions.filter(q => q.id == action.payload.questionId)[0].choices.filter(c => c.id == action.payload.choiceId)[0].weights
-            const weightExists = weightArray.filter(w => w.outcomeId == action.payload.outcomeId).length != 0
+            const weightArray = state.questions.filter(q => q.id == action.payload.questionID)[0].choices.filter(c => c.id == action.payload.choiceID)[0].weights
+            const weightExists = weightArray.filter(w => w.outcomeID == action.payload.outcomeID).length != 0
             return {
                 ...state,
-                questions: state.questions.map(question => question.id == action.payload.questionId ? {...question, choices: question.choices.map(c => c.id == action.payload.choiceId ? {...c, weights: weightExists ? c.weights.map(w => w.outcomeId == action.payload.outcomeId ? {...w, weight: action.payload.weight} : w) : [...weightArray, {outcomeId: action.payload.outcomeId, weight: action.payload.weight}]} : c)} : question)
+                questions: state.questions.map(question => question.id == action.payload.questionID ? {...question, choices: question.choices.map(c => c.id == action.payload.choiceID ? {...c, weights: weightExists ? c.weights.map(w => w.outcomeID == action.payload.outcomeID ? {...w, weight: action.payload.weight} : w) : [...weightArray, {outcomeID: action.payload.outcomeID, weight: action.payload.weight}]} : c)} : question)
             }
         case INCREMENT_QUESTION_INDEX:
-            var questionIndex = state.questions.findIndex(question => question.id == action.payload.questionId)
+            var questionIndex = state.questions.findIndex(question => question.id == action.payload.questionID)
             if (questionIndex == state.questions.length - 1) return state
             return {
                 ...state,
                 questions: incrementIndex(state.questions, questionIndex)
             }
         case DECREMENT_QUESTION_INDEX:
-            var questionIndex = state.questions.findIndex(question => question.id == action.payload.questionId)
+            var questionIndex = state.questions.findIndex(question => question.id == action.payload.questionID)
             if (questionIndex == 0) return state
             return {
                 ...state,
                 questions: decrementIndex(state.questions, questionIndex)
             }
         case INCREMENT_CHOICE_INDEX:
-            var targetQuestion = state.questions.filter(question => question.id == action.payload.questionId)[0]
-            var choiceIndex = targetQuestion.choices.findIndex(choice => choice.id == action.payload.choiceId)
+            var targetQuestion = state.questions.filter(question => question.id == action.payload.questionID)[0]
+            var choiceIndex = targetQuestion.choices.findIndex(choice => choice.id == action.payload.choiceID)
             if (choiceIndex == targetQuestion.choices.length - 1) return state
             return {
                 ...state,
-                questions: state.questions.map(question => question.id == action.payload.questionId ? {...question, choices: incrementIndex(question.choices, choiceIndex)} : question)
+                questions: state.questions.map(question => question.id == action.payload.questionID ? {...question, choices: incrementIndex(question.choices, choiceIndex)} : question)
             }
         case DECREMENT_CHOICE_INDEX:
-            var targetQuestion = state.questions.filter(question => question.id == action.payload.questionId)[0]
-            var choiceIndex = targetQuestion.choices.findIndex(choice => choice.id == action.payload.choiceId)
+            var targetQuestion = state.questions.filter(question => question.id == action.payload.questionID)[0]
+            var choiceIndex = targetQuestion.choices.findIndex(choice => choice.id == action.payload.choiceID)
             if (choiceIndex == 0) return state
             return {
                 ...state,
-                questions: state.questions.map(question => question.id == action.payload.questionId ? {...question, choices: decrementIndex(question.choices, choiceIndex)} : question)
+                questions: state.questions.map(question => question.id == action.payload.questionID ? {...question, choices: decrementIndex(question.choices, choiceIndex)} : question)
+            }
+        case SAVE_QUIZ:
+            let { id, ...stateNoId } = state
+            axios
+                .post("http://localhost:5000/graphql", {
+                    query: `
+                        mutation UpdateQuiz($id: ID!, $quiz: QuizInput) {
+                            updateQuiz(id: $id, quiz: $quiz) {
+                                id
+                            }
+                        }
+                    `,
+                    variables: {id: id, quiz: stateNoId}
+                })
+                .catch(e => console.log(e.message))
+            return state
+        case CREATE_QUIZ:
+            return {
+                ...state,
+                id: action.payload.id
             }
         default:
             return state

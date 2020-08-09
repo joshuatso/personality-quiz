@@ -172,7 +172,7 @@ const RootQueryType = new GraphQLObjectType({
         },
         authenticateUser: {
             type: UserWithTokenType,
-            description: "An authenticated user",
+            description: "An authenticated user by logging in",
             args: {
                 username: { type: GraphQLString },
                 password: { type: GraphQLString }
@@ -198,14 +198,14 @@ const RootQueryType = new GraphQLObjectType({
                     if (e) {
                         throw Error(e.message)
                     } else {
-                        throw Error("Error adding user")
+                        throw Error("Error authenticating user")
                     }
                 }
             }
         },
         user: {
             type: UserType,
-            description: "A single user",
+            description: "A single user information retrieved by provided token",
             args: {
                 id: { type: GraphQLString }
             },

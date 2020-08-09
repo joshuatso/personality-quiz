@@ -12,14 +12,14 @@ export default function(state=initialState, action) {
         case ADD_RESPONSE:
             return {
                 ...state,
-                responses: [...state.responses, {quizId: action.payload.quizId, answers: []}]
+                responses: [...state.responses, {quizID: action.payload.quizID, answers: []}]
             }
         case SELECT_CHOICE:
-            const answerArray = state.responses.filter(res => res.id == action.payload.quizId)[0].answers
-            const answerExists = answerArray.filter(ans => ans.questionId == action.payload.questionId).length != 0
+            const answerArray = state.responses.filter(res => res.id == action.payload.quizID)[0].answers
+            const answerExists = answerArray.filter(ans => ans.questionID == action.payload.questionID).length != 0
             return {
                 ...state,
-                responses: state.responses.map(res => res.quizId == action.payload.quizId ? {...res, answers: answerExists ? res.answers.map(ans => ans.questionId == action.payload.questionId ? {...ans, answer: action.payload.choiceId} : ans) : [...res.answers, {questionId: action.payload.questionId, answer: action.payload.choiceId}]} : res)
+                responses: state.responses.map(res => res.quizID == action.payload.quizID ? {...res, answers: answerExists ? res.answers.map(ans => ans.questionID == action.payload.questionID ? {...ans, answer: action.payload.choiceID} : ans) : [...res.answers, {questionID: action.payload.questionID, answer: action.payload.choiceID}]} : res)
             }
         default:
             return state

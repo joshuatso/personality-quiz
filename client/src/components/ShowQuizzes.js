@@ -15,6 +15,7 @@ import ArrowUpwardIcon from "@material-ui/icons/ArrowUpward"
 import ArrowDownwardIcon from "@material-ui/icons/ArrowDownward"
 import DeleteIcon from "@material-ui/icons/Delete"
 import AddCircleOutlineIcon from "@material-ui/icons/AddCircleOutline"
+import TestInput from "./TestInput"
 import QuestionScreen from "./QuestionScreen"
 import OutcomeScreen from "./OutcomeScreen"
 import DeployScreen from "./DeployScreen"
@@ -100,7 +101,7 @@ export default function ShowQuizzes() {
     const classes = useStyles()
     const [quizzes, setQuizzes] = useState([])
     const [activeStep, setActiveStep] = useState(0)
-    const [openQuestionId, setOpenQuestionId] = useState(null)
+    const [openquestionID, setopenquestionID] = useState(null)
     const [displayOutcomeErrors, setDisplayOutcomeErrors] = useState(false)
     const [displayOutcomeErrorBar, setDisplayOutcomeErrorBar] = useState(false)
     const [outcomeErrorIds, setOutcomeErrorIds] = useState([])
@@ -114,7 +115,7 @@ export default function ShowQuizzes() {
         }
     `)
 
-    const steps = ["Outcomes", "Questions", "Deploy", "Share"]
+    const steps = ["Start", "Outcomes", "Questions", "Deploy", "Share"]
 
     function fetchQuizzes() {
         setQuizzes(data.quizzes.map(quiz => quiz.title))
@@ -123,7 +124,7 @@ export default function ShowQuizzes() {
     function handleNext(){
         setDisplayOutcomeErrors(true)
         setDisplayedOutcomeErrorIds(outcomeErrorIds)
-        if (activeStep == 0 && outcomeErrorIds.length != 0) {
+        if (activeStep == 1 && outcomeErrorIds.length != 0) {
             setDisplayOutcomeErrorBar(true)
             return
         }
@@ -188,8 +189,9 @@ export default function ShowQuizzes() {
             </div>
             <div className={classes.lowerContainer}>
                 {[
+                    <TestInput></TestInput>,
                     <OutcomeScreen displayOutcomeErrors={displayOutcomeErrors} setOutcomeErrorIds={setOutcomeErrorIds} displayedOutcomeErrorIds={displayedOutcomeErrorIds}></OutcomeScreen>,
-                    <QuestionScreen openQuestionId={openQuestionId} setOpenQuestionId={setOpenQuestionId}></QuestionScreen>,
+                    <QuestionScreen openquestionID={openquestionID} setopenquestionID={setopenquestionID}></QuestionScreen>,
                     <DeployScreen></DeployScreen>,
                     null
                 ][activeStep]}

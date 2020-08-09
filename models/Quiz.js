@@ -24,7 +24,7 @@ const quizSchema = new mongoose.Schema({
                 required: true 
             },
             weights: [{
-                outcomeId: {
+                outcomeID: {
                     type: mongoose.Types.ObjectId,
                     required: true
                 },
@@ -39,12 +39,11 @@ const quizSchema = new mongoose.Schema({
     }],
     outcomes: [{
         id: {
-            type: mongoose.Types.ObjectId,
+            type: String,
             required: true
         },
         outcome: {
-            type: String,
-            required: true
+            type: String
         },
         description: {
             type: String

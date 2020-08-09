@@ -6,11 +6,15 @@ const express = require("express")
 const mongoose = require("mongoose")
 const cors = require("cors")
 const expressJWT = require("express-jwt")
+const { ApolloServer } = require("apollo-server-express")
 
 // Routers
 const quizRouter = require("./routes/api/quizzes")
 const userRouter = require("./routes/api/users")
-const graphqlHTTP = require("./graphql")
+
+// GraphQL
+const typeDefs = require("./graphql/schema")
+const resolvers = require("./graphql/resolvers")
 
 // Create express app
 const app = express()
@@ -25,6 +29,7 @@ const auth = expressJWT({
 // Use middleware
 app.use(express.json())
 app.use(cors())
+app.use(auth)
 
 // Connect to database
 mongoose
@@ -38,6 +43,8 @@ app.use("/api/quizzes", quizRouter)
 app.use("/api/users", userRouter)
 
 // GraphQL
-app.use("/graphql", auth, graphqlHTTP)
+const apolloServer = new ApolloServer({ typeDefs, resolvers, context: ({ req }) => ({user: req.user}) })
+apolloServer.applyMiddleware({ app, path: "/graphql" })
 
-app.listen(process.env.PORT || 5000)
+app.listen(process.env.PORT || 5000, () =>
+console.log(`🚀 Server ready at http://localhost:5000${apolloServer.graphqlPath}`))
