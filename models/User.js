@@ -18,7 +18,11 @@ const userSchema = new mongoose.Schema({
     registerDate: {
         type: Date,
         default: Date.now()
-    }
+    },
+    quizzes: [{
+        type: mongoose.Types.ObjectId, 
+        ref: "Quiz"
+    }]
 })
 
 module.exports = mongoose.model("User", userSchema)

@@ -26,10 +26,11 @@ module.exports = {
         },
         user: async (_, __, context) => {
             try {
+                console.log("GETTING USER")
                 if (!context.user) {
                     throw Error("Not authorized to retrieve this information")
                 }
-                return await User.findById(context.user.id)
+                return await User.findById(context.user.id).populate("quizzes")
             } catch(e) {
                 if (e) throw Error(e.message)
                 throw Error("Error retrieving user")
@@ -53,8 +54,12 @@ module.exports = {
                 if (!context.user) {
                     throw Error("Not authorized to create a quiz")
                 }
-                const newQuiz = new Quiz(quiz)
-                return await newQuiz.save()
+                const newQuiz = new Quiz({...quiz, creatorID: context.user.id})
+                const savedNewQuiz = await newQuiz.save()
+                const user = await User.findById(context.user.id)
+                user.quizzes.push(savedNewQuiz.id)
+                user.save()
+                return savedNewQuiz
             } catch(e) {
                 if (e) throw Error(e.message)
                 throw Error("Error creating quiz")
@@ -62,6 +67,7 @@ module.exports = {
         },
         updateQuiz: async (_, { id, quiz }) => {
             try {
+                console.log("UPDATING")
                 const quizExist = await Quiz.findById(id)
                 if (quizExist) {
                     const oldQuiz = await Quiz.findOneAndReplace({_id: id}, quiz)
@@ -131,6 +137,7 @@ module.exports = {
                         process.env.JWT_SECRET,
                         { expiresIn: 3600 }
                     )
+                    console.log({token, user: foundUser})
                     return {token, user: foundUser}
                 }
             } catch (e) {

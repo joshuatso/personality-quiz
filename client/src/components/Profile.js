@@ -86,11 +86,15 @@ const useStyles = makeStyles((theme) => ({
 
 export default function Profile() {
     const classes = useStyles()
-    const { loading: userLoading, error: userError, data: userData } = useQuery(FETCH_USER, {onError: reportErrors})
+    const { loading: userLoading, error: userError, data: userData, refetch } = useQuery(FETCH_USER, {onError: reportErrors})
 
     function reportErrors(e) {
         console.log(e)
     }
+
+    useEffect(() => {
+        refetch()
+    }, [])
 
     return(
         <>
@@ -122,8 +126,12 @@ export default function Profile() {
                 <Divider/>
                 <div className={classes.lowerContainer}>
                     <Switch>
-                        <Route component={MyResponses} path="/profile/responses"></Route>
-                        <Route component={MyQuizzes} path="/profile/quizzes"></Route>
+                        <Route path="/profile/responses">
+                            <MyResponses></MyResponses>
+                        </Route>
+                        <Route path="/profile/quizzes">
+                            <MyQuizzes quizzes={userData.user.quizzes}></MyQuizzes>
+                        </Route>
                     </Switch>
                 </div>
             </div>

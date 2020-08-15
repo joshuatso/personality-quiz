@@ -6,7 +6,11 @@ export const FETCH_USER = gql`
             id,
             username,
             email,
-            registerDate
+            registerDate,
+            quizzes {
+                id,
+                title
+            }
         }
     }
 `

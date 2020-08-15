@@ -242,6 +242,9 @@ export const createQuiz = () => dispatch => {
     dispatch({
         type: QUIZ_LOADING
     })
+    dispatch({
+        type: CLEAR_QUIZ
+    })
     axios
         .post("http://localhost:5000/graphql", {
             query: `

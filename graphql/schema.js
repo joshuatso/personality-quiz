@@ -34,7 +34,8 @@ const typeDefs = gql`
         id: ID!,
         username: String!,
         email: String!,
-        registerDate: Date
+        registerDate: Date,
+        quizzes: [Quiz]
     }
 
     input UserInput {
@@ -93,7 +94,8 @@ const typeDefs = gql`
         id: ID!,
         title: String,
         questions: [Question]!,
-        outcomes: [Outcome]!
+        outcomes: [Outcome]!,
+        creatorID: ID!
     }
 
     input QuizInput {

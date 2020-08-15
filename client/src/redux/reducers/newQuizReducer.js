@@ -46,7 +46,13 @@ function decrementIndex(list, index){
 export default function(state=initialState, action){
     switch (action.type){
         case CLEAR_QUIZ:
-            return initialState
+            return {
+                ...state,
+                id: "",
+                title: "My Quiz",
+                questions: [],
+                outcomes: []
+            }
         case SET_TITLE:
             return {
                 ...state,
@@ -140,7 +146,12 @@ export default function(state=initialState, action){
                 questions: state.questions.map(question => question.id == action.payload.questionID ? {...question, choices: decrementIndex(question.choices, choiceIndex)} : question)
             }
         case SAVE_QUIZ:
-            let { id, ...stateNoId } = state
+            let id = state.id
+            let quiz = {
+                title: state.title,
+                questions: state.questions,
+                outcomes: state.outcomes
+            }
             axios
                 .post("http://localhost:5000/graphql", {
                     query: `
@@ -152,14 +163,16 @@ export default function(state=initialState, action){
                             }
                         }
                     `,
-                    variables: {id: id, quiz: stateNoId}
+                    variables: {id: id, quiz: quiz}
                 }, {
                     headers: { Authorization: !!localStorage.getItem("token") ? `Bearer ${localStorage.getItem("token")}` : undefined}
                 })
                 .then(res => {
                     if (res.data.errors) throw Error(res.data.errors[0].message)
                 })
-                .catch(e => console.log(e.message))
+                .catch(e => {
+                    console.log(e.message)
+                })
             return state
         case CREATE_QUIZ:
             return {

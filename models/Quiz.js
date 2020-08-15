@@ -49,8 +49,9 @@ const quizSchema = new mongoose.Schema({
         type: Date,
         default: Date.now()
     },
-    creator: {
-        type: mongoose.Types.ObjectId
+    creatorID: {
+        type: mongoose.Types.ObjectId,
+        ref: "User"
     }
 })
 
