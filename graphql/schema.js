@@ -3,7 +3,7 @@ const typeDefs = gql`
     type Query {
         quiz(id: ID!): Quiz,
         quizzes: [Quiz]!,
-        user(id: ID!): User,
+        user: User,
         note(id: ID!): Note,
         notes: [Note]!
     }

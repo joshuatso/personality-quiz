@@ -3,10 +3,11 @@ import { createMuiTheme } from '@material-ui/core/styles'
 export const theme = createMuiTheme({
     palette: {
         primary: {
-            superLight: "#a1b3cdff",
-            light: "#7691b7ff",
-            main: "#466085ff",
-            dark: "#364a67ff",
+            background: "#f7edf7",
+            superLight: "#df9fdf",
+            light: "#bf40bf",
+            main: "#642164ff",
+            dark: "#391339",
             contrastText: "#ffffffff"
         },
         info: {
@@ -19,7 +20,16 @@ export const theme = createMuiTheme({
             light: "ffa7a9ff",
             main: "#ff777bff",
             dark: "#de585cff",
-            contrastText: "#ffffffff"
+            contrastText: "#efefef"
+        },
+        tertiary: {
+            main: "#facf67ff"
         }
+    },
+    shape: {
+        borderRadius: 8
+    },
+    typography: {
+        fontFamily: "'Poppins', sans-serif"
     }
 })

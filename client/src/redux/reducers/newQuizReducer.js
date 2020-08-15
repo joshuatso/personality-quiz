@@ -17,7 +17,8 @@ import {
     INCREMENT_CHOICE_INDEX,
     DECREMENT_CHOICE_INDEX,
     SAVE_QUIZ,
-    CREATE_QUIZ
+    CREATE_QUIZ,
+    QUIZ_LOADING
 } from "../actions/types"
 import { uuid } from "uuidv4"
 import axios from "axios"
@@ -26,7 +27,8 @@ const initialState = {
     id: "",
     title: "My Quiz",
     questions: [],
-    outcomes: []
+    outcomes: [],
+    quizLoading: false
 }
 
 function addId(obj) {
@@ -151,13 +153,24 @@ export default function(state=initialState, action){
                         }
                     `,
                     variables: {id: id, quiz: stateNoId}
+                }, {
+                    headers: { Authorization: !!localStorage.getItem("token") ? `Bearer ${localStorage.getItem("token")}` : undefined}
+                })
+                .then(res => {
+                    if (res.data.errors) throw Error(res.data.errors[0].message)
                 })
                 .catch(e => console.log(e.message))
             return state
         case CREATE_QUIZ:
             return {
                 ...state,
-                id: action.payload.id
+                id: action.payload.id,
+                quizLoading: false
+            }
+        case QUIZ_LOADING:
+            return {
+                ...state,
+                quizLoading: true
             }
         default:
             return state

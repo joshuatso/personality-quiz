@@ -24,12 +24,12 @@ module.exports = {
                 throw Error("Error finding quizzes")
             }
         },
-        user: async (_, args, context) => {
+        user: async (_, __, context) => {
             try {
-                if (!context.user || context.user.id != args.id) {
+                if (!context.user) {
                     throw Error("Not authorized to retrieve this information")
                 }
-                return await User.findById(args.id)
+                return await User.findById(context.user.id)
             } catch(e) {
                 if (e) throw Error(e.message)
                 throw Error("Error retrieving user")
@@ -48,13 +48,16 @@ module.exports = {
         }
     },
     Mutation: {
-        addQuiz: async (_, { quiz }) => {
+        addQuiz: async (_, { quiz }, context) => {
             try {
+                if (!context.user) {
+                    throw Error("Not authorized to create a quiz")
+                }
                 const newQuiz = new Quiz(quiz)
                 return await newQuiz.save()
-            } catch {
+            } catch(e) {
                 if (e) throw Error(e.message)
-                throw Error("Error saving quiz")
+                throw Error("Error creating quiz")
             }
         },
         updateQuiz: async (_, { id, quiz }) => {
@@ -67,7 +70,7 @@ module.exports = {
                     const newQuiz = new Quiz(quiz)
                     return await newQuiz.save()
                 }
-            } catch {
+            } catch(e) {
                 if (e) throw Error(e.message)
                 throw Error("Error saving quiz")
             }

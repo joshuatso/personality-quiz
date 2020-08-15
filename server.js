@@ -29,7 +29,10 @@ const auth = expressJWT({
 // Use middleware
 app.use(express.json())
 app.use(cors())
-app.use(auth)
+app.use(auth, function (err, req, res, next) {
+    if (err.code === 'invalid_token') return next();
+    return next(err);
+  })
 
 // Connect to database
 mongoose

@@ -20,6 +20,7 @@ import QuestionScreen from "./QuestionScreen"
 import OutcomeScreen from "./OutcomeScreen"
 import DeployScreen from "./DeployScreen"
 import logo from "../images/mainLogo.png"
+import {Redirect} from "react-router-dom"
 
 const useStyles = makeStyles((theme) => ({
     outerContainer: {
@@ -97,7 +98,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function ShowQuizzes() {
     const dispatch = useDispatch()
-    const { title } = useSelector(state => state.newQuiz)
+    const { title, id } = useSelector(state => state.newQuiz)
     const classes = useStyles()
     const [quizzes, setQuizzes] = useState([])
     const [activeStep, setActiveStep] = useState(0)
@@ -115,14 +116,14 @@ export default function ShowQuizzes() {
         }
     `)
 
-    const steps = ["Start", "Outcomes", "Questions", "Deploy", "Share"]
+    const steps = ["Outcomes", "Questions", "Deploy", "Share"]
 
     function fetchQuizzes() {
         setQuizzes(data.quizzes.map(quiz => quiz.title))
     }
 
     function handleNext(){
-        if (activeStep == 1 && outcomeErrorIds.length != 0) {
+        if (activeStep == 0 && outcomeErrorIds.length != 0) {
             setDisplayOutcomeErrors(true)
             setDisplayedOutcomeErrorIds(outcomeErrorIds)
             setDisplayOutcomeErrorBar(true)
@@ -189,7 +190,6 @@ export default function ShowQuizzes() {
             </div>
             <div className={classes.lowerContainer}>
                 {[
-                    <TestInput></TestInput>,
                     <OutcomeScreen displayOutcomeErrors={displayOutcomeErrors} setOutcomeErrorIds={setOutcomeErrorIds} displayedOutcomeErrorIds={displayedOutcomeErrorIds}></OutcomeScreen>,
                     <QuestionScreen openQuestionID={openQuestionID} setOpenQuestionID={setOpenQuestionID}></QuestionScreen>,
                     <DeployScreen></DeployScreen>,

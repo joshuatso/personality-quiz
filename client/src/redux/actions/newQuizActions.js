@@ -17,7 +17,8 @@ import {
     INCREMENT_CHOICE_INDEX,
     DECREMENT_CHOICE_INDEX,
     SAVE_QUIZ,
-    CREATE_QUIZ
+    CREATE_QUIZ,
+    QUIZ_LOADING
 } from "./types"
 import axios from "axios"
 
@@ -238,6 +239,9 @@ export const saveQuiz = () => {
 }
 
 export const createQuiz = () => dispatch => {
+    dispatch({
+        type: QUIZ_LOADING
+    })
     axios
         .post("http://localhost:5000/graphql", {
             query: `
@@ -252,14 +256,19 @@ export const createQuiz = () => dispatch => {
                 questions: [],
                 outcomes: []
             }}
+        }, {
+            headers: { Authorization: !!localStorage.getItem("token") ? `Bearer ${localStorage.getItem("token")}` : undefined}
         })
-        .then(res => dispatch({
+        .then(res => {
+            if (res.data.errors) throw Error(res.data.errors[0].message)
+            dispatch({
             type: CREATE_QUIZ,
             payload: {
                 id: res.data.data.addQuiz.id
             }
-        }))
-        .catch (() => {
-            console.log("Error creating quiz")
+        })})
+        .catch (e => {
+            if (e) console.log(e.message)
+            else console.log("Error creating quiz")
         })
 }
