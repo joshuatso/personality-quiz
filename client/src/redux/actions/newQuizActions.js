@@ -18,6 +18,7 @@ import {
     DECREMENT_CHOICE_INDEX,
     SAVE_QUIZ,
     CREATE_QUIZ,
+    FETCH_QUIZ,
     QUIZ_LOADING
 } from "./types"
 import axios from "axios"
@@ -265,13 +266,67 @@ export const createQuiz = () => dispatch => {
         .then(res => {
             if (res.data.errors) throw Error(res.data.errors[0].message)
             dispatch({
-            type: CREATE_QUIZ,
-            payload: {
-                id: res.data.data.addQuiz.id
-            }
-        })})
+                type: CREATE_QUIZ,
+                payload: {
+                    id: res.data.data.addQuiz.id
+                }
+            })
+        })
         .catch (e => {
             if (e) console.log(e.message)
             else console.log("Error creating quiz")
+        })
+}
+
+export const fetchQuiz = (id) => dispatch => {
+    dispatch({
+        type: QUIZ_LOADING
+    })
+    dispatch({
+        type: CLEAR_QUIZ
+    })
+    axios
+        .post("http://localhost:5000/graphql", {
+            query: `
+                query FetchQuiz($id: ID!) {
+                    quiz(id: $id) {
+                        id,
+                        title,
+                        questions {
+                            id,
+                            question,
+                            choices {
+                                id,
+                                choice,
+                                weights {
+                                    outcomeID,
+                                    weight
+                                }
+                            }
+                        },
+                        outcomes {
+                            id,
+                            outcome,
+                            description
+                        }
+                    }
+                }
+            `,
+            variables: {id}
+        }, {
+            headers: { Authorization: !!localStorage.getItem("token") ? `Bearer ${localStorage.getItem("token")}` : undefined}
+        })
+        .then(res => {
+            if (res.data.errors) throw Error(res.data.errors[0].message)
+            dispatch({
+                type: FETCH_QUIZ,
+                payload: {
+                    ...res.data.data.quiz
+                }
+            })
+        })
+        .catch (e => {
+            if (e) console.log(e.message)
+            else console.log("Error fetching quiz")
         })
 }

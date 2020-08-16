@@ -18,6 +18,7 @@ import {
     DECREMENT_CHOICE_INDEX,
     SAVE_QUIZ,
     CREATE_QUIZ,
+    FETCH_QUIZ,
     QUIZ_LOADING
 } from "../actions/types"
 import { uuid } from "uuidv4"
@@ -178,6 +179,12 @@ export default function(state=initialState, action){
             return {
                 ...state,
                 id: action.payload.id,
+                quizLoading: false
+            }
+        case FETCH_QUIZ:
+            return {
+                ...state,
+                ...action.payload,
                 quizLoading: false
             }
         case QUIZ_LOADING:

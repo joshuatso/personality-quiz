@@ -4,6 +4,7 @@ import ShowQuizzes from "./components/ShowQuizzes"
 import TestInput from "./components/TestInput"
 import Profile from "./components/Profile"
 import Login from "./components/Login"
+import Register from "./components/Register"
 import Home from "./components/Home"
 import NewQuizLoading from "./components/NewQuizLoading"
 import {Switch, Route} from "react-router-dom"
@@ -26,6 +27,9 @@ function App() {
         </Route>
         <Route path="/login">
           <Login></Login>
+        </Route>
+        <Route path="/register">
+          <Register></Register>
         </Route>
         <Route path="/">
           <Home></Home>

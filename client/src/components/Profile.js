@@ -92,9 +92,9 @@ export default function Profile() {
         console.log(e)
     }
 
-    useEffect(() => {
-        refetch()
-    }, [])
+    // useEffect(() => {
+    //     refetch()
+    // }, [])
 
     return(
         <>

@@ -12,7 +12,7 @@ const typeDefs = gql`
         addQuiz(quiz: QuizInput): Quiz,
         updateQuiz(id: ID!, quiz: QuizInput): Quiz,
         removeQuiz(id: ID!): Boolean,
-        addUser(user: UserInput): UserWithToken,
+        addUser(username: String!, password: String!, email: String!): UserWithToken,
         authenticateUser(username: String!, password: String!): UserWithToken,
         addNote(note: String!): Note,
         updateNote(id: ID!, note: String!): Note

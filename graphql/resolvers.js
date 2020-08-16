@@ -11,6 +11,7 @@ module.exports = {
             try {
                 const quiz = await Quiz.findById(id)
                 if (!quiz) throw Error("Quiz not found for that ID")
+                return quiz
             } catch(e) {
                 if (e) throw Error(e.message)
                 throw Error("Error finding quiz")
@@ -19,6 +20,7 @@ module.exports = {
         quizzes: async () => {
             try {
                 const quizzes = await Quiz.find()
+                return quizzes
             } catch(e) {
                 if (e) throw Error(e.message)
                 throw Error("Error finding quizzes")
@@ -26,7 +28,6 @@ module.exports = {
         },
         user: async (_, __, context) => {
             try {
-                console.log("GETTING USER")
                 if (!context.user) {
                     throw Error("Not authorized to retrieve this information")
                 }
@@ -65,49 +66,59 @@ module.exports = {
                 throw Error("Error creating quiz")
             }
         },
-        updateQuiz: async (_, { id, quiz }) => {
+        updateQuiz: async (_, { id, quiz }, context) => {
             try {
-                console.log("UPDATING")
-                const quizExist = await Quiz.findById(id)
-                if (quizExist) {
-                    const oldQuiz = await Quiz.findOneAndReplace({_id: id}, quiz)
-                    return await Quiz.findById(id)
-                } else {
-                    const newQuiz = new Quiz(quiz)
-                    return await newQuiz.save()
-                }
+                const foundQuiz = await Quiz.findById(id)
+                if (foundQuiz) {
+                    if (context.user.id != foundQuiz.creatorID) {
+                        throw Error("Not authorized to update this quiz")
+                    }
+                    foundQuiz.title = quiz.title
+                    foundQuiz.questions = quiz.questions
+                    foundQuiz.outcomes = quiz.outcomes
+                    return await foundQuiz.save()
+                } else throw Error("Quiz not found")
             } catch(e) {
                 if (e) throw Error(e.message)
                 throw Error("Error saving quiz")
             }
         },
-        removeQuiz: async (_, { id }) => {
+        removeQuiz: async (_, { id }, context) => {
             try {
-                const quiz = await Quiz.findById(id)
-                if (!quiz) throw Error("Quiz not found")
-        
-                const removed = await quiz.remove()
-                if (!removed) throw Error("Error removing quiz")
-        
-                return true
+                const foundQuiz = await Quiz.findById(id)
+                if (foundQuiz) {
+                    if (context.user.id != foundQuiz.creatorID) {
+                        throw Error("Not authorized to remove this quiz")
+                    }
+                    const user = await User.findById(foundQuiz.creatorID)
+                    user.quizzes = user.quizzes.filter(quiz => quiz.id != id)
+                    user.save()
+                    const removedQuiz = await foundQuiz.remove()
+                    if (removedQuiz) {
+                        return true
+                    } else {
+                        throw Error("Error removing quiz")
+                    }
+                } else throw Error("Quiz not found")
             } catch (e) {
                 if (e) throw Error(e.message)
                 throw Error("Error removing quiz")
             }
         },
-        addUser: async (_, { user }) => {
+        addUser: async (_, { username, email, password }) => {
             try {
-                const usernameFoundUser = await User.findOne({ username: user.username })
+                const usernameFoundUser = await User.findOne({ username })
                 if (usernameFoundUser) {
                     throw Error("Username already exists")
                 }
-                const emailFoundUser = await User.findOne({ email: user.email })
+                const emailFoundUser = await User.findOne({ email })
                 if (emailFoundUser) {
                     throw Error("Email already exists")
                 }
-                const hashedPassword = await bcrypt.hash(user.password, 10)
+                const hashedPassword = await bcrypt.hash(password, 10)
                 const newUser = new User({
-                    ...user,
+                    username,
+                    email,
                     password: hashedPassword
                 })
                 const savedUser = await newUser.save()
@@ -137,7 +148,6 @@ module.exports = {
                         process.env.JWT_SECRET,
                         { expiresIn: 3600 }
                     )
-                    console.log({token, user: foundUser})
                     return {token, user: foundUser}
                 }
             } catch (e) {
