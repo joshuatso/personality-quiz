@@ -1,26 +1,21 @@
 const { gql } = require("apollo-server-express")
 const typeDefs = gql`
     type Query {
-        quiz(id: ID!): Quiz,
+        quiz(id: String!): Quiz,
         quizzes: [Quiz]!,
-        user: User,
-        note(id: ID!): Note,
-        notes: [Note]!
+        user: User!,
+        users: [User]!,
+        response(id: String!): Response,
+        responses: [Response]!
     }
 
     type Mutation {
-        addQuiz(quiz: QuizInput): Quiz,
-        updateQuiz(id: ID!, quiz: QuizInput): Quiz,
-        removeQuiz(id: ID!): Boolean,
+        addQuiz(quiz: QuizInput!): Quiz,
+        updateQuiz(id: String!, quiz: QuizInput!): Quiz,
+        removeQuiz(id: String!): Boolean,
         addUser(username: String!, password: String!, email: String!): UserWithToken,
         authenticateUser(username: String!, password: String!): UserWithToken,
-        addNote(note: String!): Note,
-        updateNote(id: ID!, note: String!): Note
-    }
-
-    type Note {
-        id: ID!,
-        note: String!
+        addResponse(quizID: String!, choices: [ResponseChoiceInput]!): Response
     }
 
     scalar Date
@@ -31,11 +26,12 @@ const typeDefs = gql`
     }
 
     type User {
-        id: ID!,
+        id: String!,
         username: String!,
-        email: String!,
+        email: String,
         registerDate: Date,
-        quizzes: [Quiz]
+        quizzes: [Quiz],
+        responses: [Response]
     }
 
     input UserInput {
@@ -44,58 +40,78 @@ const typeDefs = gql`
         email: String!
     }
 
+    type ResponseChoice {
+        questionID: String!,
+        choiceID: String!
+    }
+
+    input ResponseChoiceInput {
+        questionID: String!,
+        choiceID: String!
+    }
+
+    type Response {
+        id: String!,
+        quiz: Quiz,
+        choices: [ResponseChoice],
+        outcome: Outcome,
+        dateResponded: Date,
+        responder: User
+    }
+
     type Outcome {
-        id: ID!,
+        id: String!,
         outcome: String,
         description: String
     }
 
     input OutcomeInput {
-        id: ID!,
+        id: String!,
         outcome: String,
         description: String
     }
 
     type Weight {
-        outcomeID: ID!,
+        outcome: Outcome,
         weight: Int
     }
 
     input WeightInput {
-        outcomeID: ID!,
+        outcomeID: String!,
         weight: Int
     }
 
     type Choice {
-        id: ID!,
+        id: String!,
         choice: String,
         weights: [Weight]!
     }
 
     input ChoiceInput {
-        id: ID!,
+        id: String!,
         choice: String,
         weights: [WeightInput]!
     }
 
     type Question {
-        id: ID!,
+        id: String!,
         question: String,
         choices: [Choice]!
     }
 
     input QuestionInput {
-        id: ID!,
+        id: String!,
         question: String,
         choices: [ChoiceInput]!
     }
 
     type Quiz {
-        id: ID!,
+        id: String!,
         title: String,
         questions: [Question]!,
         outcomes: [Outcome]!,
-        creatorID: ID!
+        creator: User,
+        responses: [Response]
     }
 
     input QuizInput {

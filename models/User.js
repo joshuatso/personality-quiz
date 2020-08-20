@@ -19,9 +19,15 @@ const userSchema = new mongoose.Schema({
         type: Date,
         default: Date.now()
     },
-    quizzes: [{
+    quizIDs: [{
         type: mongoose.Types.ObjectId, 
-        ref: "Quiz"
+        ref: "Quiz",
+        default: []
+    }],
+    responseIDs: [{
+        type: mongoose.Types.ObjectId,
+        ref: "Response",
+        default: []
     }]
 })
 

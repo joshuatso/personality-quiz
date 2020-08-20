@@ -92,13 +92,13 @@ export default function Profile() {
         console.log(e)
     }
 
-    // useEffect(() => {
-    //     refetch()
-    // }, [])
+    useLayoutEffect(() => {
+        refetch()
+    }, [])
 
     return(
         <>
-            {!!userData ? 
+            {!userData ? <CircularProgress></CircularProgress> :
             <>
             <CssBaseline/>
             <div className={classes.outerContainer}>
@@ -130,13 +130,12 @@ export default function Profile() {
                             <MyResponses></MyResponses>
                         </Route>
                         <Route path="/profile/quizzes">
-                            <MyQuizzes quizzes={userData.user.quizzes}></MyQuizzes>
+                            <MyQuizzes quizzes={userData.user.quizzes} refetchQuizzes={refetch}></MyQuizzes>
                         </Route>
                     </Switch>
                 </div>
             </div>
-            </>
-            : <CircularProgress></CircularProgress>}
+            </>}
         </>
     )
 }

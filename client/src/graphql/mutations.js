@@ -27,3 +27,9 @@ export const REGISTER_USER = gql`
         }
     }
 `
+
+export const DELETE_QUIZ = gql`
+    mutation DeleteQuiz($id: String!) {
+        removeQuiz(id: $id)
+    }
+`

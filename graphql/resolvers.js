@@ -1,9 +1,16 @@
 const Quiz = require("../models/Quiz")
 const User = require("../models/User")
-const Note = require("../models/Note")
+const Response = require("../models/Response")
 const mongoose = require("mongoose")
 const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
+
+const fetchingBeyondDenormalizedFields = (info, selections, denormalizedFields) => {
+    if (info) {
+        selections = info.fieldNodes.find(field => field.name.value == info.fieldName).selectionSet.selections
+    }
+    return selections.filter(field => !denormalizedFields.includes(field.name.value)).length > 0
+}
 
 module.exports = {
     Query: {
@@ -19,8 +26,7 @@ module.exports = {
         },
         quizzes: async () => {
             try {
-                const quizzes = await Quiz.find()
-                return quizzes
+                return await Quiz.find()
             } catch(e) {
                 if (e) throw Error(e.message)
                 throw Error("Error finding quizzes")
@@ -29,36 +35,54 @@ module.exports = {
         user: async (_, __, context) => {
             try {
                 if (!context.user) {
-                    throw Error("Not authorized to retrieve this information")
+                    throw Error("No user identifier received")
                 }
-                return await User.findById(context.user.id).populate("quizzes")
+                const user = await User.findById(context.user.id)
+                if (!user) throw Error("User not found with that ID")
+                return user
             } catch(e) {
                 if (e) throw Error(e.message)
                 throw Error("Error retrieving user")
             }
         },
-        note: async (_, { id }) => {
+        users: async (_, __, context) => {
             try {
-                return await Note.findById(id)
+                return await User.find()
             } catch(e) {
                 if (e) throw Error(e.message)
-                throw Error("Note not found")
+                throw Error("Error retrieving users")
             }
         },
-        notes: async () => {
-            return await Note.find()
+        response: async (_, {id}, context) => {
+            try {
+                const response = await Response.findById(id)
+                if (!response) throw Error("No response found for that ID")
+                return response
+            } catch(e) {
+                if (e) throw Error(e.message)
+                throw Error("Error retrieving response")
+            }
+        },
+        responses: async (_, __, context) => {
+            try {
+                return await Response.find()
+            } catch(e) {
+                if (e) throw Error(e.message)
+                throw Error("Error retrieving responses")
+            }
         }
     },
     Mutation: {
         addQuiz: async (_, { quiz }, context) => {
             try {
+                console.log(context)
                 if (!context.user) {
                     throw Error("Not authorized to create a quiz")
                 }
                 const newQuiz = new Quiz({...quiz, creatorID: context.user.id})
                 const savedNewQuiz = await newQuiz.save()
                 const user = await User.findById(context.user.id)
-                user.quizzes.push(savedNewQuiz.id)
+                user.quizIDs.push(savedNewQuiz.id)
                 user.save()
                 return savedNewQuiz
             } catch(e) {
@@ -141,7 +165,7 @@ module.exports = {
                 }
                 const isMatch = await bcrypt.compare(password, foundUser.password)
                 if (!isMatch) {
-                    return Error("Password is incorrect")
+                    throw Error("Password is incorrect")
                 } else {
                     const token = jwt.sign(
                         {id: foundUser.id},
@@ -155,14 +179,107 @@ module.exports = {
                 throw Error("Error authenticating user")
             }
         },
-        addNote: async (_, {note}) => {
-            const newNote = new Note({note})
-            return await newNote.save()
+        addResponse: async (_, {quizID, choices}, context) => {
+            try {
+                if (!context.user) {
+                    throw Error("Not authorized to create a response")
+                }
+                const quiz = Quiz.findById(quizID)
+                if (!quiz) throw Error("No quiz found for that ID")
+                let outcomeTotals = {}
+                quiz.outcomes.forEach(outcome => {
+                    outcomeTotals[outcome.id] = {...outcome, score: 0}
+                })
+                let questionObject = {}
+                quiz.questions.forEach(question => {
+                    let choiceObject = {}
+                    question.choices.forEach(choice => {
+                        choiceObject[choice.id] = choice.weights
+                    })
+                    questionObject[question.id] = choiceObject
+                })
+                choices.forEach(choice => {
+                    let weights = questionObject[choice.questionID][choice.choiceID]
+                    weights.forEach(weight => {
+                        outcomeTotals[weight.outcomeID].score += weight.weight
+                    })
+                })
+                const outcomeTotalsArray = Object.values(outcomeTotals)
+                const winningOutcome = outcomeTotalsArray.reduce((highOutcome, curOutcome) => curOutcome.score >= highOutcome.score ? curOutcome : highOutcome)
+                delete winningOutcome.score
+                const newResponse = new Response({quizID, quizCreatorID: quiz.creatorID, choices, outcome: winningOutcome, responderID: context.user.id})
+                const savedNewResponse = await newResponse.save()
+                const user = await User.findById(context.user.id)
+                user.responseIDs.push(savedNewResponse.id)
+                user.save()
+                quiz.responseIDs.push(savedNewResponse.id)
+                return savedNewResponse
+            } catch(e) {
+                if (e) throw Error(e.message)
+                throw Error("Error creating response")
+            }
+        }
+    },
+    User: {
+        email: (parent, __, context) => {
+            if (!context.user || context.user.id != parent.id) return null
+            else return parent.email
         },
-        updateNote: async (_, {id, note}) => {
-            const foundNote = await Note.findById(id)
-            foundNote.note = note
-            return await foundNote.save()
+        responses: async (parent, __, context, info) => {
+            if (!context.user || context.user.id != parent.id) return null
+            if (fetchingBeyondDenormalizedFields(info, null, ["id"])) {
+                return (await parent.populate("responseIDs").execPopulate()).responseIDs
+            } else {
+                return parent.responseIDs.map(id => ({id}))
+            }
+        },
+        quizzes: async (parent, __, context, info) => {
+            if (fetchingBeyondDenormalizedFields(info, null, ["id"])) {
+                return (await parent.populate("quizIDs").execPopulate()).quizIDs
+            } else {
+                return parent.quizIDs.map(id => ({id}))
+            }
+        }
+    },
+    Response: {
+        quiz: async (parent, __, context, info) => {
+            if (fetchingBeyondDenormalizedFields(info, null, ["id"])) {
+                return (await parent.populate("quizID").execPopulate()).quizID
+            } else {
+                return {id: parent.quizID}
+            }
+        },
+        responder: async (parent, __, context, info) => {
+            if (!context.user) return null
+            if (context.user.id != parent.responderID && context.user.id != parent.quizCreatorID) return null
+            if (fetchingBeyondDenormalizedFields(info, null, ["id"])) {
+                return (await parent.populate("responderID").execPopulate()).responderID
+            } else {
+                return {id: parent.responderID}
+            }
+        }
+    },
+    Quiz: {
+        creator: async (parent, __, context, info) => {
+            if (fetchingBeyondDenormalizedFields(info, null, ["id"])) {
+                return (await parent.populate("creatorID").execPopulate()).creatorID
+            } else {
+                return {id: parent.creatorID}
+            }
+        },
+        responses: async (parent, __, context, info) => {
+            if (fetchingBeyondDenormalizedFields(info, null, ["id"])) {
+                return (await parent.populate("responseIDs").execPopulate()).responseIDs
+            } else {
+                return parent.responseIDs.map(id => ({id}))
+            }
+        },
+        questions: async (parent, __, context, info) => {
+            if (!context.user || context.user.id != parent.creatorID) {
+                return parent.questions.map(question => ({...question, choices: question.choices.map(choice => ({...choice, weights: null}))}))
+            } else {
+                return parent.questions
+            }
         }
     }
 }

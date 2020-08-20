@@ -288,7 +288,7 @@ export const fetchQuiz = (id) => dispatch => {
     axios
         .post("http://localhost:5000/graphql", {
             query: `
-                query FetchQuiz($id: ID!) {
+                query FetchQuiz($id: String!) {
                     quiz(id: $id) {
                         id,
                         title,

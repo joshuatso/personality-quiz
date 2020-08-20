@@ -156,7 +156,7 @@ export default function(state=initialState, action){
             axios
                 .post("http://localhost:5000/graphql", {
                     query: `
-                        mutation UpdateQuiz($id: ID!, $quiz: QuizInput) {
+                        mutation UpdateQuiz($id: String!, $quiz: QuizInput) {
                             updateQuiz(id: $id, quiz: $quiz) {
                                 outcomes {
                                     outcome

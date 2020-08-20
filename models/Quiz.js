@@ -6,7 +6,7 @@ const quizSchema = new mongoose.Schema({
     },
     questions: [{
         id: {
-            type: mongoose.Types.ObjectId,
+            type: String,
             required: true
         },
         question: {
@@ -14,7 +14,7 @@ const quizSchema = new mongoose.Schema({
         },
         choices: [{
             id: {
-                type: mongoose.Types.ObjectId,
+                type: String,
                 required: true
             },
             choice: { 
@@ -22,7 +22,7 @@ const quizSchema = new mongoose.Schema({
             },
             weights: [{
                 outcomeID: {
-                    type: mongoose.Types.ObjectId,
+                    type: String,
                     required: true
                 },
                 weight: {
@@ -52,7 +52,12 @@ const quizSchema = new mongoose.Schema({
     creatorID: {
         type: mongoose.Types.ObjectId,
         ref: "User"
-    }
+    },
+    responseIDs: [{
+        type: mongoose.Types.ObjectId,
+        ref: "Response",
+        default: []
+    }]
 })
 
 module.exports = mongoose.model("Quiz", quizSchema)
