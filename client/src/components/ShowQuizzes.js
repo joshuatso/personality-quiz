@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useLayoutEffect, useCallback } from
 import axios from "axios"
 import { uuid } from "uuidv4"
 import { useDispatch, useSelector } from "react-redux"
-import { setTitle, addQuestion, setQuestionQuestion, incrementQuestionIndex, decrementQuestionIndex, removeQuestion, setChoiceChoice, addChoice } from "../redux/actions/newQuizActions"
+import { setTitle, addQuestion, setQuestionQuestion, incrementQuestionIndex, decrementQuestionIndex, removeQuestion, setChoiceChoice, addChoice, fetchQuiz } from "../redux/actions/newQuizActions"
 import { gql, useQuery } from "@apollo/client"
 import { AppBar, Toolbar, Button, ButtonBase, Typography, InputBase, TextField, IconButton, Grid, Paper, Drawer, Chip, Fab, Zoom, Modal, Fade, Backdrop, Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Stepper, Step, StepLabel, Snackbar } from "@material-ui/core"
 import { Alert } from "@material-ui/lab"
@@ -20,7 +20,8 @@ import QuestionScreen from "./QuestionScreen"
 import OutcomeScreen from "./OutcomeScreen"
 import DeployScreen from "./DeployScreen"
 import logo from "../images/mainLogo.png"
-import {Redirect} from "react-router-dom"
+import {Redirect, useParams} from "react-router-dom"
+import QuizLoading from "./QuizLoading"
 
 const useStyles = makeStyles((theme) => ({
     outerContainer: {
@@ -98,7 +99,7 @@ const useStyles = makeStyles((theme) => ({
 
 export default function ShowQuizzes() {
     const dispatch = useDispatch()
-    const { title, id } = useSelector(state => state.newQuiz)
+    const { quizLoading, title, id } = useSelector(state => state.newQuiz)
     const classes = useStyles()
     const [quizzes, setQuizzes] = useState([])
     const [activeStep, setActiveStep] = useState(0)
@@ -107,20 +108,10 @@ export default function ShowQuizzes() {
     const [displayOutcomeErrorBar, setDisplayOutcomeErrorBar] = useState(false)
     const [outcomeErrorIds, setOutcomeErrorIds] = useState([])
     const [displayedOutcomeErrorIds, setDisplayedOutcomeErrorIds] = useState([])
+    const {id: paramsID} = useParams()
     const theme = useTheme()
-    const { loading, error, data } = useQuery(gql`
-        {
-            quizzes {
-                title
-            }
-        }
-    `)
 
     const steps = ["Outcomes", "Questions", "Deploy", "Share"]
-
-    function fetchQuizzes() {
-        setQuizzes(data.quizzes.map(quiz => quiz.title))
-    }
 
     function handleNext(){
         if (activeStep == 0 && outcomeErrorIds.length != 0) {
@@ -137,73 +128,81 @@ export default function ShowQuizzes() {
         setActiveStep(prevActiveStep => prevActiveStep == 0 ? prevActiveStep : prevActiveStep-1)
     }
 
+    useEffect(() => {
+        if (id != paramsID) dispatch(fetchQuiz(paramsID))
+    }, [])
+
     return (
         <>
-        <CssBaseline />
-        <AppBar position="fixed" className={classes.appBar}>
-            <Toolbar classes={{root: classes.toolbar}}>
-                <ButtonBase className={classes.logoButton}>
-                    <img src={logo} className={classes.logo}></img>
-                </ButtonBase>
-                {/* <IconButton
-                    edge="start"
-                    className={classes.menuButton}
-                    color="inherit"
-                    aria-label="open drawer"
-                >
-                    <MenuIcon />
-                </IconButton> */}
-                <div className={classes.titleWrapper}>
-                    <div className={classes.editIcon}>
-                        <EditIcon></EditIcon>
+            {quizLoading ? <QuizLoading></QuizLoading> : 
+                <>
+                <CssBaseline />
+                <AppBar position="fixed" className={classes.appBar}>
+                    <Toolbar classes={{root: classes.toolbar}}>
+                        <ButtonBase className={classes.logoButton}>
+                            <img src={logo} className={classes.logo}></img>
+                        </ButtonBase>
+                        {/* <IconButton
+                            edge="start"
+                            className={classes.menuButton}
+                            color="inherit"
+                            aria-label="open drawer"
+                        >
+                            <MenuIcon />
+                        </IconButton> */}
+                        <div className={classes.titleWrapper}>
+                            <div className={classes.editIcon}>
+                                <EditIcon></EditIcon>
+                            </div>
+                            <InputBase
+                                classes={{
+                                    input: classes.titleInput
+                                }}
+                                value={title}
+                                onChange={(e) => {dispatch(setTitle(e.target.value))}}
+                            />
+                        </div>
+                    </Toolbar>
+                </AppBar>
+                <div className={classes.outerContainer}>
+                    <div className={classes.upperContainer}>
+                        <Toolbar />
+                        <div className={classes.upperContentContainer}>
+                            <div className={classes.stepperBackContainer}>
+                                <Button color="primary" className={classes.stepperBackButton} onClick={handleBack} disabled={activeStep == 0}>Back</Button>
+                            </div>
+                            <div className={classes.stepperContainer}>
+                                <Stepper alternativeLabel activeStep={activeStep}>
+                                    {steps.map((label) => (
+                                    <Step key={label}>
+                                        <StepLabel>{label}</StepLabel>
+                                    </Step>
+                                    ))}
+                                </Stepper>
+                            </div>
+                            <div className={classes.stepperNextContainer}>
+                                <Button color="primary" className={classes.stepperNextButton} onClick={handleNext} disabled={activeStep == steps.length-1}>Next</Button>
+                            </div>
+                        </div>
                     </div>
-                    <InputBase
-                        classes={{
-                            input: classes.titleInput
-                        }}
-                        value={title}
-                        onChange={(e) => {dispatch(setTitle(e.target.value))}}
-                    />
+                    <div className={classes.lowerContainer}>
+                        {[
+                            <OutcomeScreen displayOutcomeErrors={displayOutcomeErrors} setOutcomeErrorIds={setOutcomeErrorIds} displayedOutcomeErrorIds={displayedOutcomeErrorIds}></OutcomeScreen>,
+                            <QuestionScreen openQuestionID={openQuestionID} setOpenQuestionID={setOpenQuestionID}></QuestionScreen>,
+                            <DeployScreen></DeployScreen>,
+                            null
+                        ][activeStep]}
+                        {/* <Button onClick={() => {fetchQuizzes()}}>Show Quizzes</Button>
+                        {quizzes.map(quiz => <div key={uuid()}>{quiz}</div>)} */}
+                    </div>
                 </div>
-            </Toolbar>
-        </AppBar>
-        <div className={classes.outerContainer}>
-            <div className={classes.upperContainer}>
-                <Toolbar />
-                <div className={classes.upperContentContainer}>
-                    <div className={classes.stepperBackContainer}>
-                        <Button color="primary" className={classes.stepperBackButton} onClick={handleBack} disabled={activeStep == 0}>Back</Button>
-                    </div>
-                    <div className={classes.stepperContainer}>
-                        <Stepper alternativeLabel activeStep={activeStep}>
-                            {steps.map((label) => (
-                            <Step key={label}>
-                                <StepLabel>{label}</StepLabel>
-                            </Step>
-                            ))}
-                        </Stepper>
-                    </div>
-                    <div className={classes.stepperNextContainer}>
-                        <Button color="primary" className={classes.stepperNextButton} onClick={handleNext} disabled={activeStep == steps.length-1}>Next</Button>
-                    </div>
-                </div>
-            </div>
-            <div className={classes.lowerContainer}>
-                {[
-                    <OutcomeScreen displayOutcomeErrors={displayOutcomeErrors} setOutcomeErrorIds={setOutcomeErrorIds} displayedOutcomeErrorIds={displayedOutcomeErrorIds}></OutcomeScreen>,
-                    <QuestionScreen openQuestionID={openQuestionID} setOpenQuestionID={setOpenQuestionID}></QuestionScreen>,
-                    <DeployScreen></DeployScreen>,
-                    null
-                ][activeStep]}
-                {/* <Button onClick={() => {fetchQuizzes()}}>Show Quizzes</Button>
-                {quizzes.map(quiz => <div key={uuid()}>{quiz}</div>)} */}
-            </div>
-        </div>
-        <Snackbar open={displayOutcomeErrorBar} autoHideDuration={6000} onClose={() => setDisplayOutcomeErrorBar(false)}>
-            <Alert elevation={6} variant="filled" severity="error">
-                There were some errors on the outcomes screen.
-            </Alert>
-        </Snackbar>
+                <Snackbar open={displayOutcomeErrorBar} autoHideDuration={6000} onClose={() => setDisplayOutcomeErrorBar(false)}>
+                    <Alert elevation={6} variant="filled" severity="error">
+                        There were some errors on the outcomes screen.
+                    </Alert>
+                </Snackbar>
+                </>
+            }
         </>
     )
 }

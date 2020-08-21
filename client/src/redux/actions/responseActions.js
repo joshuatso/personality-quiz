@@ -1,22 +1,21 @@
 import {
-    ADD_RESPONSE,
+    CREATE_RESPONSE,
     SELECT_CHOICE
 } from "./types"
 
-export const addResponse = quizID => {
+export const createResponse = quizID => {
     return {
-        type: ADD_RESPONSE,
+        type: CREATE_RESPONSE,
         payload: {
             quizID
         }
     }
 }
 
-export const selectChoice = (quizID, questionID, choiceID) => {
+export const selectChoice = (questionID, choiceID) => {
     return {
         type: SELECT_CHOICE,
         payload: {
-            quizID,
             questionID,
             choiceID
         }

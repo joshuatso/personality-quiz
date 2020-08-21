@@ -19,8 +19,8 @@ export default function MyQuizzes({quizzes, refetchQuizzes}) {
             {quizzes.map(quiz => 
                 <div key={`${quiz.id} intro`}>
                     {quiz.title}
-                    <Link to="/newQuiz">
-                        <Button onClick={() => dispatch(fetchQuiz(quiz.id))}>
+                    <Link to={`/editQuiz/${quiz.id}`}>
+                        <Button>
                             Edit
                         </Button>
                     </Link>

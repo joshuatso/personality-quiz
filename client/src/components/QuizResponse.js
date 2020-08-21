@@ -1,12 +1,34 @@
-import React from 'react'
+import React, {useState, useEffect} from 'react'
 import { Grid, Paper, Button } from "@material-ui/core"
 import { useSelector, useDispatch } from "react-redux"
-import { addResponse, selectChoice } from "../redux/actions/responseActions"
+import { createResponse, selectChoice } from "../redux/actions/responseActions"
+import {useParams} from "react-router-dom"
+import {useQuery, useMutation} from "@apollo/client"
+import { FETCH_QUIZ_FOR_RESPONSE } from "../graphql/queries"
+import { ADD_RESPONSE } from "../graphql/mutations"
 
-export default function QuizResponse({quizId, inPreview}) {
-    const { responses } = useSelector(state => state.response)
-    const { questions } = useSelector(state => state.newQuiz)
-    // const targetResponse = responses.filter(res => res.quizId == quizId)[0]
+export default function QuizResponse({inPreview}) {
+    const {answers} = useSelector(state => state.response)
+    const [questions, setQuestions] = useState([])
+    const {id: quizID} = useParams()
+    const {data: quizData} = useQuery(FETCH_QUIZ_FOR_RESPONSE, {variables: {id: quizID}, onError: reportErrors})
+    const [addResponse, {data: responseData}] = useMutation(ADD_RESPONSE, {onError: reportErrors})
+    const dispatch = useDispatch()
+
+    function reportErrors(e) {
+        console.log(e)
+    }
+
+    useEffect(() => {
+        if (quizData) {
+            setQuestions(quizData.quiz.questions)
+        }
+    }, [quizData])
+
+    useEffect(() => {
+        dispatch(createResponse(quizID))
+    }, [])
+    
     return (
         <>
             <Grid container direction="column">
@@ -19,13 +41,16 @@ export default function QuizResponse({quizId, inPreview}) {
                                 </Grid>
                                 {question.choices.map(choice =>
                                     <Grid item xs={12} sm={6}>
-                                        <Button>{choice.choice}</Button>
+                                        <Button onClick={() => dispatch(selectChoice(question.id, choice.id))}>{choice.choice}</Button>
                                     </Grid>
                                 )}
                             </Grid>
                         </Paper>
                     </Grid>
                 )}
+                <Grid item>
+                    <Button onClick={() => addResponse({variables: {response: {quizID, answers}}})}>Submit</Button>
+                </Grid>
             </Grid>
         </>
     )

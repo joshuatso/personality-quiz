@@ -33,3 +33,13 @@ export const DELETE_QUIZ = gql`
         removeQuiz(id: $id)
     }
 `
+export const ADD_RESPONSE = gql`
+    mutation AddResponse($response: ResponseInput!) {
+        addResponse(response: $response) {
+            outcome {
+                outcome,
+                description
+            }
+        }
+    }
+`

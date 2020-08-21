@@ -2,10 +2,10 @@ import React from 'react'
 import {Button} from "@material-ui/core"
 import {Link} from "react-router-dom"
 import {useQuery} from "@apollo/client"
-import {FETCH_QUIZZES} from "../graphql/queries"
+import {FETCH_QUIZ_TITLES} from "../graphql/queries"
 
 export default function Home() {
-    const { loading: quizzesLoading, error: quizzesError, data: quizzesData, refetch } = useQuery(FETCH_QUIZZES, {onError: reportErrors})
+    const { loading: quizzesLoading, error: quizzesError, data: quizzesData, refetch } = useQuery(FETCH_QUIZ_TITLES, {onError: reportErrors})
 
     function reportErrors(e) {
         console.log(e)

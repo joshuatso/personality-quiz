@@ -249,17 +249,19 @@ export const createQuiz = () => dispatch => {
     axios
         .post("http://localhost:5000/graphql", {
             query: `
-                mutation CreateQuiz($quiz: QuizInput) {
+                mutation CreateQuiz($quiz: QuizInput!) {
                     addQuiz(quiz: $quiz) {
                         id
                     }
                 }
             `,
-            variables: {quiz: {
-                title: "My Quiz",
-                questions: [],
-                outcomes: []
-            }}
+            variables: {
+                quiz: {
+                    title: "My Quiz",
+                    questions: [],
+                    outcomes: []
+                }
+            }
         }, {
             headers: { Authorization: !!localStorage.getItem("token") ? `Bearer ${localStorage.getItem("token")}` : undefined}
         })
@@ -299,7 +301,9 @@ export const fetchQuiz = (id) => dispatch => {
                                 id,
                                 choice,
                                 weights {
-                                    outcomeID,
+                                    outcome {
+                                        id
+                                    },
                                     weight
                                 }
                             }
@@ -321,7 +325,8 @@ export const fetchQuiz = (id) => dispatch => {
             dispatch({
                 type: FETCH_QUIZ,
                 payload: {
-                    ...res.data.data.quiz
+                    ...res.data.data.quiz,
+                    questions: res.data.data.quiz.questions.map(question => ({...question, choices: question.choices.map(choice => ({...choice, weights: choice.weights.map(weight => ({...weight, outcomeID: weight.outcome.id, outcome: null}))}))}))
                 }
             })
         })

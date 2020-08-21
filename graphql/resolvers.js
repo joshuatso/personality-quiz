@@ -6,6 +6,7 @@ const bcrypt = require("bcryptjs")
 const jwt = require("jsonwebtoken")
 
 const fetchingBeyondDenormalizedFields = (info, selections, denormalizedFields) => {
+    if (!info && !selections) return false
     if (info) {
         selections = info.fieldNodes.find(field => field.name.value == info.fieldName).selectionSet.selections
     }
@@ -75,7 +76,6 @@ module.exports = {
     Mutation: {
         addQuiz: async (_, { quiz }, context) => {
             try {
-                console.log(context)
                 if (!context.user) {
                     throw Error("Not authorized to create a quiz")
                 }
@@ -115,7 +115,7 @@ module.exports = {
                         throw Error("Not authorized to remove this quiz")
                     }
                     const user = await User.findById(foundQuiz.creatorID)
-                    user.quizzes = user.quizzes.filter(quiz => quiz.id != id)
+                    user.quizIDs = user.quizIDs.filter(quiz => quiz.id != id)
                     user.save()
                     const removedQuiz = await foundQuiz.remove()
                     if (removedQuiz) {
@@ -278,7 +278,17 @@ module.exports = {
             if (!context.user || context.user.id != parent.creatorID) {
                 return parent.questions.map(question => ({...question, choices: question.choices.map(choice => ({...choice, weights: null}))}))
             } else {
-                return parent.questions
+                const questionsSelections = info.fieldNodes.find(field => field.name.value == info.fieldName).selectionSet.selections
+                const outcomeSelections = questionsSelections.find(field => field.name.value == "choices").selectionSet.selections.find(field => field.name.value == "weights").selectionSet.selections.find(field => field.name.value == "outcome").selectionSet.selections
+                if (fetchingBeyondDenormalizedFields(null, outcomeSelections, ["id"])) {
+                    let outcomesObject = {}
+                    parent.outcomes.forEach(outcome => {
+                        outcomesObject[outcome.id] = outcome
+                    })
+                    return parent.questions.map(question => ({...question, choices: question.choices.map(choice => ({...choice, weights: choice.weights.map(weight => ({...weight, outcome: outcomesObject[weight.outcomeID]}))}))}))
+                } else {
+                    return parent.questions.map(question => ({...question, choices: question.choices.map(choice => ({...choice, weights: choice.weights.map(weight => ({...weight, outcome: {id: weight.outcomeID}}))}))}))
+                }
             }
         }
     }

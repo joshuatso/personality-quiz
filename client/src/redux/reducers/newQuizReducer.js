@@ -60,9 +60,11 @@ export default function(state=initialState, action){
                 title: action.payload.title
             }
         case ADD_OUTCOME:
+            let newOutcome = addId(action.payload.outcome)
             return {
                 ...state,
-                outcomes: [...state.outcomes, addId(action.payload.outcome)]
+                outcomes: [...state.outcomes, newOutcome],
+                questions: state.questions.map(question => ({...question, choices: question.choices.map(choice => ({...choice, weights: [...choice.weights, {outcomeID: newOutcome.id, weight: 0}]}))}))
             }
         case REMOVE_OUTCOME:
             return {
@@ -95,9 +97,10 @@ export default function(state=initialState, action){
                 questions: state.questions.map(q => q.id == action.payload.questionID ? {...q, question: action.payload.questionQuestion} : q)
             }
         case ADD_CHOICE:
+            let newChoice = addId(action.payload.choice)
             return {
                 ...state,
-                questions: state.questions.map(question => question.id == action.payload.questionID ? {...question, choices: [...question.choices, addId(action.payload.choice)]} : question)
+                questions: state.questions.map(question => question.id == action.payload.questionID ? {...question, choices: [...question.choices, {...newChoice, weights: state.outcomes.map(outcome => ({outcomeID: outcome.id, weight: 0}))}]} : question)
             }
         case REMOVE_CHOICE:
             return {
@@ -156,11 +159,9 @@ export default function(state=initialState, action){
             axios
                 .post("http://localhost:5000/graphql", {
                     query: `
-                        mutation UpdateQuiz($id: String!, $quiz: QuizInput) {
+                        mutation UpdateQuiz($id: String!, $quiz: QuizInput!) {
                             updateQuiz(id: $id, quiz: $quiz) {
-                                outcomes {
-                                    outcome
-                                }
+                                id
                             }
                         }
                     `,

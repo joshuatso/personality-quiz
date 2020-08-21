@@ -6,7 +6,8 @@ import Profile from "./components/Profile"
 import Login from "./components/Login"
 import Register from "./components/Register"
 import Home from "./components/Home"
-import NewQuizLoading from "./components/NewQuizLoading"
+import NewQuiz from "./components/NewQuiz"
+import QuizResponse from "./components/QuizResponse"
 import {Switch, Route} from "react-router-dom"
 import CssBaseline from '@material-ui/core/CssBaseline'
 
@@ -16,11 +17,17 @@ function App() {
     <>
       <CssBaseline/>
       <Switch>
-        <Route path="/newQuiz/:id">
+        <Route path="/editQuiz/:id">
           <ShowQuizzes></ShowQuizzes>
         </Route>
+        <Route path="preview/:id">
+          <QuizResponse inPreview></QuizResponse>
+        </Route>
+        <Route path="response/:id">
+          <QuizResponse></QuizResponse>
+        </Route>
         <Route path="/newQuiz">
-          <NewQuizLoading></NewQuizLoading>
+          <NewQuiz></NewQuiz>
         </Route>
         <Route path="/profile">
           <Profile></Profile>
