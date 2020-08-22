@@ -34,8 +34,8 @@ export const DELETE_QUIZ = gql`
     }
 `
 export const ADD_RESPONSE = gql`
-    mutation AddResponse($response: ResponseInput!) {
-        addResponse(response: $response) {
+    mutation AddResponse($quizID: String!, $answers: [AnswerInput]!) {
+        addResponse(quizID: $quizID, answers: $answers) {
             outcome {
                 outcome,
                 description

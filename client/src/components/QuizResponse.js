@@ -31,11 +31,11 @@ export default function QuizResponse({inPreview}) {
     
     return (
         <>
-            <Grid container direction="column">
+            <Grid container direction="column" spacing={2}>
                 {questions.map(question => 
                     <Grid item>
                         <Paper>
-                            <Grid container>
+                            <Grid direction="row" container>
                                 <Grid item xs={12}>
                                     {question.question}
                                 </Grid>
@@ -49,7 +49,8 @@ export default function QuizResponse({inPreview}) {
                     </Grid>
                 )}
                 <Grid item>
-                    <Button onClick={() => addResponse({variables: {response: {quizID, answers}}})}>Submit</Button>
+                    <Button onClick={() => { console.log({quizID, answers})
+                        addResponse({variables: {quizID, answers}})}}>Submit</Button>
                 </Grid>
             </Grid>
         </>

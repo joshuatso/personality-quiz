@@ -15,7 +15,7 @@ const typeDefs = gql`
         removeQuiz(id: String!): Boolean,
         addUser(username: String!, password: String!, email: String!): UserWithToken,
         authenticateUser(username: String!, password: String!): UserWithToken,
-        addResponse(response: ResponseInput!): Response
+        addResponse(quizID: String!, answers: [AnswerInput]!): Response
     }
 
     scalar Date
@@ -57,11 +57,6 @@ const typeDefs = gql`
         outcome: Outcome,
         dateResponded: Date,
         responder: User
-    }
-
-    input ResponseInput {
-        quizID: String!,
-        answers: [AnswerInput]!
     }
 
     type Outcome {

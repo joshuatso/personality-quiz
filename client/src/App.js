@@ -20,10 +20,10 @@ function App() {
         <Route path="/editQuiz/:id">
           <ShowQuizzes></ShowQuizzes>
         </Route>
-        <Route path="preview/:id">
+        <Route path="/preview/:id">
           <QuizResponse inPreview></QuizResponse>
         </Route>
-        <Route path="response/:id">
+        <Route path="/response/:id">
           <QuizResponse></QuizResponse>
         </Route>
         <Route path="/newQuiz">

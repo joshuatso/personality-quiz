@@ -1,9 +1,13 @@
 import React from 'react'
 import { Button } from "@material-ui/core"
-import QuizResponse from "./QuizResponse"
+import {Link} from "react-router-dom"
+import {useSelector} from "react-redux"
 
 export default function DeployScreen() {
+    const {id} = useSelector(state => state.newQuiz)
     return (
-        <Button variant="contained" color="primary">Preview</Button>
+        <Link to={`/preview/${id}`}>
+            <Button variant="contained" color="primary">Preview</Button>
+        </Link>
     )
 }

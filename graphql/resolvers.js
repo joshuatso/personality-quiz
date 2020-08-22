@@ -179,13 +179,14 @@ module.exports = {
                 throw Error("Error authenticating user")
             }
         },
-        addResponse: async (_, {quizID, choices}, context) => {
+        addResponse: async (_, {quizID, answers}, context) => {
             try {
                 if (!context.user) {
                     throw Error("Not authorized to create a response")
                 }
-                const quiz = Quiz.findById(quizID)
+                let quiz = await Quiz.findById(quizID)
                 if (!quiz) throw Error("No quiz found for that ID")
+                quiz = quiz.toObject()
                 let outcomeTotals = {}
                 quiz.outcomes.forEach(outcome => {
                     outcomeTotals[outcome.id] = {...outcome, score: 0}
@@ -198,8 +199,8 @@ module.exports = {
                     })
                     questionObject[question.id] = choiceObject
                 })
-                choices.forEach(choice => {
-                    let weights = questionObject[choice.questionID][choice.choiceID]
+                answers.forEach(answer => {
+                    let weights = questionObject[answer.questionID][answer.choiceID]
                     weights.forEach(weight => {
                         outcomeTotals[weight.outcomeID].score += weight.weight
                     })
@@ -207,7 +208,7 @@ module.exports = {
                 const outcomeTotalsArray = Object.values(outcomeTotals)
                 const winningOutcome = outcomeTotalsArray.reduce((highOutcome, curOutcome) => curOutcome.score >= highOutcome.score ? curOutcome : highOutcome)
                 delete winningOutcome.score
-                const newResponse = new Response({quizID, quizCreatorID: quiz.creatorID, choices, outcome: winningOutcome, responderID: context.user.id})
+                const newResponse = new Response({quizID, quizCreatorID: quiz.creatorID, answers, outcome: winningOutcome, responderID: context.user.id})
                 const savedNewResponse = await newResponse.save()
                 const user = await User.findById(context.user.id)
                 user.responseIDs.push(savedNewResponse.id)
@@ -275,20 +276,23 @@ module.exports = {
             }
         },
         questions: async (parent, __, context, info) => {
+            parent = parent.toObject()
             if (!context.user || context.user.id != parent.creatorID) {
                 return parent.questions.map(question => ({...question, choices: question.choices.map(choice => ({...choice, weights: null}))}))
             } else {
                 const questionsSelections = info.fieldNodes.find(field => field.name.value == info.fieldName).selectionSet.selections
-                const outcomeSelections = questionsSelections.find(field => field.name.value == "choices").selectionSet.selections.find(field => field.name.value == "weights").selectionSet.selections.find(field => field.name.value == "outcome").selectionSet.selections
-                if (fetchingBeyondDenormalizedFields(null, outcomeSelections, ["id"])) {
-                    let outcomesObject = {}
-                    parent.outcomes.forEach(outcome => {
-                        outcomesObject[outcome.id] = outcome
-                    })
-                    return parent.questions.map(question => ({...question, choices: question.choices.map(choice => ({...choice, weights: choice.weights.map(weight => ({...weight, outcome: outcomesObject[weight.outcomeID]}))}))}))
-                } else {
-                    return parent.questions.map(question => ({...question, choices: question.choices.map(choice => ({...choice, weights: choice.weights.map(weight => ({...weight, outcome: {id: weight.outcomeID}}))}))}))
+                try {
+                    const outcomeSelections = questionsSelections.find(field => field.name.value == "choices").selectionSet.selections.find(field => field.name.value == "weights").selectionSet.selections.find(field => field.name.value == "outcome").selectionSet.selections
+                    if (fetchingBeyondDenormalizedFields(null, outcomeSelections, ["id"])) {
+                        let outcomesObject = {}
+                        parent.outcomes.forEach(outcome => {
+                            outcomesObject[outcome.id] = outcome
+                        })
+                        return parent.questions.map(question => ({...question, choices: question.choices.map(choice => ({...choice, weights: choice.weights.map(weight => ({...weight, outcome: outcomesObject[weight.outcomeID]}))}))}))
+                    }
+                } catch {
                 }
+                return parent.questions.map(question => ({...question, choices: question.choices.map(choice => ({...choice, weights: choice.weights.map(weight => ({...weight, outcome: {id: weight.outcomeID}}))}))}))
             }
         }
     }
